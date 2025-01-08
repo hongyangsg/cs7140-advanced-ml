@@ -33,7 +33,7 @@ The ERM framework is very general -- we now give a concrete example to illustrat
 
 \paragraph{Assumptions (realizable, finite hypothesis):}
 i) The size of the hypothesis space, $\cH$, is finite;
-ii) There exists a hypothesis $h^{\star} \in \cH$ such that $h^{\star}$ achieves perfect performance, i.e., $L(h^{\star}) = \exarg{(x, y) \in \bP^{\star}}{\ell( h^{\star}(x), y )} = 0$.
+ii) There exists a hypothesis $h^{\star} \in \cH$ such that $h^{\star}$ achieves perfect performance, i.e., \[ L(h^{\star}) = \exarg{(x, y) \in \bP^{\star}}{\ell( h^{\star}(x), y )} = 0. \]
 
 Under these assumptions, we shall prove the following property of ERM:
 
@@ -45,7 +45,7 @@ Under these assumptions, we shall prove the following property of ERM:
     \[ L(\hat h_{\erm}) \le \frac {\log(\abs{\cH}) + \log(\delta^{-1})} {n} \]
 \end{mdframed}
 
-In particular, to reduce the expected risk below $\epsilon$, we want $n \ge \frac {\log(\abs{\cH} + \log(\delta^{-1}))} {\epsilon}$.
+In particular, to reduce the expected risk below $\epsilon$, we want $n \ge \frac {\log(\abs{\cH}) + \log(\delta^{-1})} {\epsilon}$.
 Remarks:
 \begin{itemize}
     \item The excess risk only grows logarithmically with the size of the hypothesis class, so we affort to use an exponentially large hypothesis space.
@@ -86,7 +86,7 @@ Remarks:
 \end{proof}
 
 \paragraph{Takeaway:}
-The proof of this result is elementary but illustrates an important pattern that will recur in more complex scenarios
+The proof of this result is elementary but illustrates an important pattern that will recur in more complex scenarios.
 We are interested in the expected risk, but only have access to empirical risk to choose the ERM:
 \begin{itemize}
     \item Step 1 (convergence): for a fixed $h$, show that $\hat L(h)$ is close to $L(h)$ with high probability
@@ -104,7 +104,7 @@ To answer this, we need better ways of measuring the ``size'' of a set -- leadin
 We now give a high-level picture of the logic behind how we can use uniform convergence to reason about generalization (in the context of ERM).
 We’d like to show that ERM’s excess risk is small:
 \begin{align}
-    \Pr\left[ L(\hat h_{\erm} - \hat L(\hat h_{\erm}) \ge \epsilon \right] \le \delta
+    \Pr\left[ L(\hat h_{\erm}) - \hat L(\hat h_{\erm}) \ge \epsilon \right] \le \delta
 \end{align}
 We can expand the excess risk as
 \begin{align}
@@ -121,7 +121,7 @@ The central thesis of uniform convergence is that if we could ensure that $L(h)$
 
 In summary, our goal of deriving a uniform convergence result can be stated as
 \begin{align}
-    \Pr[L(\hat h_{\erm}) - L(h_{\star}) \ge \epsilon]
+    \Pr[L(\hat h_{\erm}) - L(h^{\star}) \ge \epsilon]
     \le \Pr\left[ \left(\sup_{h \in \cH} \abs{L(h) - \hat L(h)} \right) \ge \frac {\epsilon} 2 \right]
     \le \delta
 \end{align}
@@ -131,10 +131,7 @@ Put it in words, we'd like to upper bound the probability that the largest diffe
 \paragraph{Next lecture:}
 We'll talk about concentration estimates, which form the most fundamental techniques for dealing with IID random variables.
 Then we'll talk about a generalization bound for finite (not necessarily realizable) hypothesis classes.
-Suggested reading: Chapter 3.1-3.3 of Statistical learning theory lecture notes by Percy Liang.
+\textbf{Suggested reading:} Chapter 3.1-3.3 of Statistical learning theory lecture notes by Percy Liang.
 
 
 %\subsection{Concentration estimates (Lecture 2)}
-
-
-
