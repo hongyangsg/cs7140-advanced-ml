@@ -349,7 +349,7 @@ By setting $\epsilon = \sqrt{\frac {2(\log\abs{\cH} + \log(2\delta^{-1}))} n }$,
 It makes sense that learning is faster when there is no noise.
 
 
-\subsection{Rademacher complexity (Lecture 4)}
+\subsection{Rademacher complexity I (Lecture 4)}
 
 Both of our generalization bounds require finite hypothesis classes. What about infinite hypothesis classes?
 
@@ -450,7 +450,7 @@ Our second claim is to show that $\ex{G_n}$ is upper bounded by the Rademacher c
 We have already seen the proof of this claim.
 Combined together, we can derive \eqref{eq_rade_bound}.
 
-\subsubsection{Properties of Rademacher complexity}
+\subsubsection{Properties of Rademacher complexity}\label{sec_property_rade}
 
 \paragraph{Boundedness:}
 \begin{align*}
@@ -464,18 +464,187 @@ This is because we now take the supreme over a larger set, hence $R_n$ increases
 
 \paragraph{Scaling:} $R_n(c\cdot \cH) = c\cdot R_n(\cH)$.
 
-\paragraph{Lipschitz composition:} Suppose $\phi$ is a Lipschitz-continuous, bounded by some constant $c_{\phi}$. Recall a function is Lipschitz-continuous if changing $x$ only changes the function value by $c_{\phi}$ times.
+\paragraph{Lipschitz composition:} Suppose $\phi$ is a Lipschitz-continuous function, bounded by some constant $c_{\phi}$. Recall a function is Lipschitz-continuous if changing $x$ only changes the function value by $c_{\phi}$ times.  In addition, $\phi(0) = 0$.
 
 Let $\phi \circ \cH =  \set{(x, y) \rightarrow \phi(h(x), y) : h \in \cH}$, i.e., compose $\phi$ with $h$.
 Then, we have that \[ R_n(\phi \circ \cH) \le c_{\phi} \cdot R_n(\cH). \]
 
-The proof requires going through the definition carefully.
-This property is useful because we can start by studying a simpler hypothesis class, and then compose more functions with the class without going through the calculation again
+The proof essentially uses the contraction property of the sum of Rademacher random variables.
+For details, see Corollary 3.17 of \cite{ledoux2013probability}.
+This property is useful because we can start by studying a simpler hypothesis class, and then compose more functions with the class without going through the calculation again.
 
-\paragraph{Next lecture:} more examples of the Rademacher complexity, plus completing the proof. {\bf Suggested readings:} Chapter 3.8 of \cite{liang2016cs229t}.
+\paragraph{Convex hull:} The convex hull of a set $\cH$ is when we take all possible linear combinations of the hypotheses in $\cH$.
+One useful property is that taking the convex of $\cH$ preserves the Rademacher complexity: $R_n(\cH) = R_n(\textup{convex-hull}(\cH))$.
+
+Proof: Notice that the supreme over the convex hull must be attained at a vertex of the convex hull.
+This property is quite useful if we want to calculate the Rademacher complexity of a polytope. Though it is an infinite set, it suffices to examine the vertices of the polytope. We'll use this property when we examine the $\ell_1$-regularization.
+
+\subsubsection{Wrapping up the proof of \eqref{eq_rade_bound} (Lecture 5)}
 
 
+
+\subsection{Examples of Rademacher complexity (Lecture 5)}
+
+So far, we have set up Rademacher complexity for bounding the complexity of an infinite hypothesis class.
+Now, let's apply Rademacher complexity for the case when the function class is finite.
+Recall that we have already derived a nice generalization bound for finite hypothesis classes, using concentration inequalities (see result \eqref{eq_finite_real}).
+Still, this is a nice sanity check through a different route. Besides, we'll derive a useful result that will be helpful later on.
+
+
+\subsubsection{Learning finite hypothesis classes}
+
+\paragraph{Massart's finite lemma:} Let $\cH$ be a set of functions/hypotheses.
+Let $M^2$ be a bound on the second moment of functions of $\cH$:
+\[ \sup_{f \in \cH} \frac 1 n \sum_{i = 1}^n (f(Z_i))^2 \le M^2, \]
+where $Z_i = (x_i, y_i)$ denotes an input data sample.
+Then, the empirical Rademacher complexity is bounded by:
+\begin{align}
+    \hat{R}_n(F) \le \sqrt{ \frac {2M^2 \log(\abs{\cH})} n } \label{eq_emp_massart}
+\end{align}
+Notice that if we combine the above result \eqref{eq_emp_massart} with the Rademacher complexity-based generalization bound of equation \eqref{eq_rade_bound}, we recover the result in equation \eqref{eq_finite_real}.
+
+\paragraph{Proof:} For simplicity, let us denote $W_f = \frac 1 n \sum_{i=1}^n \sigma_i f(Z_i)$.
+Recall that the empirical Rademacher complexity is defined as
+\[ \hat R_n(F) = \exarg{\sigma_{1:n}} {\sup_{f \in \cH} W_f \mid Z_{1:n} } \]
+Let us write down the moment generating function of $\sup_{f\in\cH} W_f$, and we'll use the convexity of the exponential function
+\begin{align*}
+    \exp\left(t \cdot \ex{\sup_{f \in \cH} W_f \mid Z_{1:n}} \right)
+    &\le \ex{\exp\left(t \cdot \sup_{f\in \cH} W_f \right) \mid Z_{1:n }} \\
+    &= \ex{\sup_{f\in\cH} \exp\left(t \cdot W_f \right) \mid Z_{1:n}}
+\end{align*}
+The above can be further bounded by
+\begin{align*}
+    \bigabs{\cH}\cdot \ex{\exp\left(t \cdot W_f \right) \mid Z_{1:n}}
+\end{align*}
+Finally, recall that $W_f$ is the sum of $n$ independent random variables.
+Hence, we invoke the product property of the individual MGFs, to get that $M_{W_f}(t)$ is the product of the individual random variables.
+Recall that we've conditioned on $Z_{1:n}$, which can be treated as constants.
+Thus, the randomness is now just on $\sigma_{1:n}$---each $\sigma_i$ is either $+1$ or $-1$, scaled by $f(Z_i)$ (which is a constant conditioned on $Z_i$).
+We can show that $\sigma_i$ is sub-Gaussian with parameter $1$, since we have the fact that for any random variable $X$ bounded between $a$ and $b$ (for some $a < b$), then $X$ must be $(b-a)^2/4$ sub-Gaussian.\footnote{For a proof see this blog post: \url{https://statisticaloddsandends.wordpress.com/2018/10/05/bounded-random-variables-are-sub-gaussian/}}
+%\begin{align*}
+%    M_{\sigma_i}(t) = \ex{\exp(t \sigma_i)} = \frac 1 2 \left( \exp(t) + \exp(-t) \right)
+%\end{align*}
+
+As a result, $W_f$ is sub-Gaussian with parameter at most $\frac 1 {n^2} \sum_{i=1}^n (f(Z_i))^2 \le M^2 / n$.
+Therefore, we now get that
+\[ \ex{\exp(t \cdot W_f) \mid Z_{1:n}} \le \exp\left(\frac{t \cdot M^2} {2n}\right) \]
+We can now conclude that
+\[ \exp(t \hat R_n(f)) \le \bigabs{\cH} \exp\left( \frac{t M^2} {2n} \right) \]
+Taking log on both sides and divide by $t$, we get:
+\[ \hat R_n(\cH) \le \frac{\log(\bigabs{\cH})} t + \frac{ t M^2} {2n} \]
+By setting $t$ to minimize the right-hand side above, we conclude that $\hat R_n(\cH) \le \sqrt{\frac {2\log(\bigabs{\cH}) M^2} {n}}$.
+
+We can apply the above result along with \eqref{eq_rade_bound} to derive the result for learning from a bounded set of $0$-$1$ valued functions.
+
+\subsubsection{Generalization bounds for $\ell_2$-norm/$\ell_1$-norm constrained linear models}
+
+The next two examples involve learning a linear model from a norm-bounded hypothesis space.
+The first example applies to Ridge regression, for instance, training models with weight decay.
+The second example applies to LASSO regression, i.e., training with $\ell_1$-regularization instead.
+Next, we'll derive the Rademacher complexity of these two examples.
+
+\paragraph{Rademacher complexity of $\ell_2$ balls:}
+Let $\cH = \set{z \rightarrow \inner{w}{z} \mid w \in \cW}$ be a set of linear functions such that $\bignorm{w} \le B$ for any $w \in \cW$.
+Furthermore, assume the data distribution has a bounded second moment:
+\[ \exarg{z\sim\bP}{\bignorm{z}^2 } \le C^2 \]
+Then we have
+\[ R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n h(z_i)} \le \frac {B \cdot C} {\sqrt n} \]
+
+\paragraph{Proof:} The key idea is to exploit the linear algebraic structure of the Rademacher complexity
+\begin{align*}
+    R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i h(z_i)}
+    &= \ex{\sup_{w\in\cW} \frac 1 n\sum_{i=1}^n \sigma_i \inner{w}{z_i}} \\
+    &\le \ex{\sup_{w \in \cW} \bignorm{\frac {w} n} \cdot \bignorm{\sum_{i=1}^n \sigma_i z_i}} \\
+    &\le \frac{ B } n \cdot \ex{\bignorm{ \sum_{i=1}^n \sigma_i z_i}}
+\end{align*}
+by the condition placed on $\cW$.
+Finally, by Jensen's inequality, the above is at most
+\begin{align*}
+    \frac B n \cdot \sqrt{\ex{\bignorm{\sum_{i=1}^n \sigma_i z_i}^2 }}
+    = \frac B n \cdot \sqrt{\sum_{i=1}^n \ex{\bignorm{z_i}^2}}
+    \le \frac {B \cdot C} {\sqrt n}
+\end{align*}
+
+\paragraph{Rademacher complexity of $\ell_1$ balls:}
+In some applications, we have a finite but large set of features, and we believe that only a small subset of them are relevant to our task.
+For such applications, $\ell_1$-regularization has proven to be a working strategy (e.g., pruning, compression).
+Assume that the entries of the input vector are bounded from above by some constant $C > 0$: $\max_{j=1}^d z_i[j] \le C$, for $i = 1, 2, \dots, n$.
+Let $\cH = \set{z \rightarrow \inner{w}{z} \mid \bignorm{w}_1 \le B}$ be a set of linear functions.
+Then, the Rademacher complexity of $\cH$ is bounded as follows
+\begin{align*}
+    R_n(\cH) \le \frac{ B \cdot C \cdot \sqrt{2\log(2d)}} {\sqrt n}
+\end{align*}
+
+\paragraph{Proof:} The key idea is that the $\ell_1$ ball is the convex hull of $2d$ weight vectors aligned with the basis
+\[ W = \set{Be_1, -Be_1, Be_2, -Be_2, \dots, Be_d, -Be_d} \]
+Since the Rademacher complexity of this class is equal to the Rademacher complexity of its convex hull, we just look at the finite class $W$ since
+\[ R_n(\cH) = \ex{\sup_{w\in W} \frac 1 n \sum_{i=1}^n \sigma_i \inner{w}{z_i}} \]
+Since $W$ is a finite set, we can apply Massart's finite lemma (see \eqref{eq_emp_massart}).
+In order to do so, we shall first check the moment condition:
+\[ \frac 1 n \sum_{i=1}^n (\sigma_i \inner{w}{z_i})^2 \le \bignorm{w}_1^2 \cdot \bignorm{z}_{\infty}^2 = B^2 \cdot C^2 \]
+Thus, by result \eqref{eq_emp_massart}, we now get that
+\[ \hat R_n(\cH) \le \sqrt{\frac {2B^2 C^2 \log(2d)} n} \]
+
+\subsubsection{Binary classification}
+
+In the next example, we study the case of binary classification.
+For an input with feature $x$ and label $y$, we focus on the set of linear predictors with bounded $\ell_2$-norm: $\cW = \set{w: \bignorm{w} \le B}$.
+Next, we select a loss function for our linear predictor.
+The output of the linear predictor is given by $y \cdot \inner{w}{x}$.
+\begin{itemize}
+    \item Zero-one loss: $\ell(m) = \mathbbm{1}_{m \le 0}$
+
+    \item Hinge loss: $\ell(m) = \max(0, 1 - m)$
+
+    \item Logistic loss: $\ell(m) =  {\log(1 + \exp(-m)) }$ %\frac {\log(2)}
+\end{itemize}
+The function class is $\cH = \set{z \rightarrow \inner{z}{w} \mid w \in\cW}$.
+The loss function composed with $\cH$ is thus
+\[ \cA = \set{ (x, y) \rightarrow \ell(y \inner{w}{x}) \mid w \in \cW} \]
+\begin{itemize}
+    \item The linear predictors are constrained inside an $\ell_2$-norm bounded ball
+
+    \item Both the Hinge loss and the logistic loss are Lipschitz-continuous
+    
+    \item Using the composition property of Rademacher complexity (see Section \ref{sec_property_rade}), we get a generalization bound for solving binary classification using Hinge/logistic loss
+\end{itemize}
+The zero-one loss, however, is not Lipschitz, so we cannot directly apply our result to the zero-one loss.
+Notice that the zero-one loss is not sensitive to the norm of $w$. Think of two points close to zero, one positive and the other negative.
+To handle this situation, we can use the margin loss.
+
+\paragraph{Margin loss:} Penalizes whenever we don’t predict correctly by at least a margin of $\gamma$
+\[ \phi_{\gamma}(m) = \mathbbm{1}_{m \le \gamma} \]
+
+Then, we smooth the margin loss between $0$ and $\gamma$ into a straight line, leading to the following somewhat complicated form
+\begin{align*}
+    \tilde\phi_{\gamma}(m) %= \min\left(1, \max\left(0, 1 - \frac m {\gamma}\right)\right)
+    = \begin{cases}
+        1 & \text{ if } m \le 0 \\
+        1 - \frac{m}{\gamma} & \text{ if } 0 < m < \gamma \\
+        0 & \text{ if } m \ge \gamma
+    \end{cases}
+\end{align*}
+
+Key observation: $\tilde\phi_{\gamma}$ is $\gamma^{-1}$-Lipschitz continuous (meaning that $\bigabs{\tilde\phi_{\gamma}(m_1) - \tilde\phi_{\gamma}(m_2) } \le \frac {\bigabs{m_1 - m_2}} {\gamma}$).
+
+\paragraph{Margin-sensitive zero-one loss for linear classifiers:}
+Let $\cH$ be a set of linear models.
+With probability at least $1  - \delta$,
+\begin{align*}
+    L_0(\hat h_{\erm}) \le \min_{h\in\cH} L_{\gamma}(h) + \frac {4 R_n (\cH)} {\gamma} + \sqrt{\frac {2 \log(2\delta^{-1})} n}
+\end{align*}
+Proof sketch:
+\begin{itemize}
+    \item Using composition of $R_n$, we have: $R_n(\tilde \phi_{\gamma} \circ \cH) \le \gamma^{-1} R_n(\cH)$
+    
+    \item Using Rademacher complexity applied to $\tilde L_{\gamma}$, we get the relation between $\tilde L_{\gamma}(\hat h_{\erm})$ and $\min_{h\in\cH}\tilde L_{\gamma}(h)$
+
+    \item Notice that $\phi_0 \le \tilde \phi_{\gamma} \le \phi_{\gamma}$.
+    Thus, $\min_{h\in\cH} \tilde L_{\gamma} \le \min_{h\in\cH} \min_{h\in\cH} L_{\gamma}$,
+    and $L_0(\hat h_{\erm}) \le \tilde L_{\gamma}(\hat h_{\erm})$.
+\end{itemize}
+
+\paragraph{Next lecture:} wrap up the proof of Rademacher complexity-based generalization bounds.
+Apply it to matrix completion and two-layer neural networks. {\bf Suggested readings:} Chapter 3.9, 3.12 of \cite{liang2016cs229t}.
 
 %\subsubsection{More about concentration estimates}
-
-
