@@ -749,12 +749,88 @@ Proof sketch:
 
 \subsection{Matrix completion (Lecture 6)}
 
-Suppose you are asked to build a recommendation system. This system is to predict the review rating of a movie. 
+Suppose you are asked to build a recommendation system. This system is used to predict the review rating of a movie.
 Related examples: Book reviews on Amazon and music recommendations on YouTube.
 
 \paragraph{Rank-constrained minimization:}
+Given an input array $X$, find $Z$ as close to $X$ as possible on the observed entries, while subject a (low) rank constraint:
+\begin{align*}
+    \min_{X} &~~ \sum_{(i, j) \in \Omega}  (X_{i, j} - Z_{i, j})^2 \\
+    \mbox{s.t.} &~~~~ \text{rank}(X) = r
+\end{align*}
 
-\paragraph{Next lecture:} wrap up the proof of Rademacher complexity-based generalization bounds.
-Apply it to matrix completion and two-layer neural networks. {\bf Suggested readings:} Chapter 3.9, 3.12 of \cite{liang2016cs229t}.
+\paragraph{Nuclear norm relaxation:} The rank constraint makes the problem non-convex, search space increases at a combinatorial rate (although good algorithms exist).
+Instead, we could relax the rank constraint into a nuclear norm constraint: given a matrix $Z$, let $\bignorm{Z}_{\star} = \sum_{j} \lambda_j(Z)$---the sum of the singular values of $Z$.
+One could show that $\bignorm{Z}_{\star}$ is convex in $Z$; this is called the ``nuclear'' norm of $Z$.
+Instead, solve the following, which is convex in $Z$:
+\begin{align*}
+    \min_{X} &~~ \sum_{(i, j) \in \Omega} (X_{i, j} - Z_{i, j})^2 \\
+    \mbox{s.t.} &~~~ \bignorm{X}_{\star} \le r
+\end{align*}
 
-%\subsubsection{More about concentration estimates}
+\paragraph{Low-rank factorization:} An alternative way to formulate the above is by writing it as a convex optimization problem:
+\[ \min \sum_{(i, j) \in \Omega} (X_{i, j} - Z_{i, j})^2 + \lambda \bignorm{Z}_{\star} \]
+This is a semi-definite program (SDP), which is convex in $Z$.
+Instead, we may consider the re-parametrized optimization problem:
+\[ \min \sum_{(i, j) \in \Omega} (U_i^{\top} V_j - Z_{i, j})^2, \]
+where $U_i, V_j$ are both $r$-dimensional vectors, for any $i, j$.
+Put together, $U = [U_1, U_2, \dots, U_{d_1}]$, $V = [V_1, V_2, \dots, V_{d_2}]$ are both rank-$r$ matrices.
+
+\paragraph{How well does nuclear norm minimization work?}
+Imagine we want to recover an unknown low-rank matrix $M \in \real^{d_1 \times d_2}$.
+We observe $m$ entries from $M$ uniformly at random.
+Then, given another matrix $X$, we may define the mean squared recovery error as
+\[ \frac 1 {d_1} \frac 1 {d_2} \sum_{i=1}^{d_1} \sum_{j=1}^{d_2} (X_{i, j} - M_{i, j})^2 \]
+Without further assumptions, we would need to see the entire matrix:
+\begin{itemize}
+    \item Imagine the unknown matrix only has an extremely large entry but remains nonzero elsewhere
+    
+    \item Without sampling this entry, we are only observing zeros
+\end{itemize}
+Therefore, we shall assume that $M$ is bounded in all entries---this is a reasonable assumption for modeling many applications (e.g., movie ratings).
+In general, one may assume that $M$ is incoherent (meaning that the row norms of the low-rank factors are bounded at the order of $O(n^{-1})$).
+
+\paragraph{Recovery result:} Let $d r$ be the upper bound we place on the matrix in the nuclear norm minimization program. Let $\hat M$ denote the output of the program. Then, the recovery error of $\hat M$ is at most:
+\[ 2r \sqrt{\frac {\log (d)} {m d}}, \]
+where $d = \max(d_1, d_2)$.
+For example, if we want the test error less than $\epsilon$, then the number of samples needs to be at least
+\[ m \ge \frac {d r^2} { \epsilon^2 \log (d) } \]
+We're going to use Rademacher complexity to tackle this. Here we can think that nuclear norm minimization constrains how large the matrix can be.
+Thus, we define the hypothesis class to be the set of nuclear norm bounded and entrywise bounded matrices as follows:
+\[ \cH = \bigset{ X \in \real^{d_1 \times d_2} \mid \bignormnuc{X} \le d r, \bignorm{X}_{\infty} \le 1} \]
+Let $\Omega\subseteq[d_1]\times[d_2]$ be the indices of the set of observed entries.
+Let $X_{\Omega}$ denote the observed matrix that pads zero for the unobserved entries.
+Then, we define the Rademacher complexity of $\cH$ as
+\[ R_n(\cH) = \exarg{\Omega, \sigma_{1:m}}{\sup_{X\in\cH} \frac 1 m \sum_{(i, j) \in \Omega}  \sigma_{i, j} \cdot \bigabs{X_{i, j} - M_{i, j}}} \]
+
+Here we're going to use the following result.
+Suppose $\cH$ is a set of matrices whose nuclear norm is bounded by $C$:
+\[ \cH = \set{X\in\real^{d_1\times d_2} \mid \bignormnuc{X} \le C} \]
+Then, the Rademacher complexity of nuclear norm bounded matrices is at most
+\begin{align} R_n(\cH) = \exarg{\Omega}{ \sup_{X\in\cH} \frac 1 m \sum_{ (i, j) \in \Omega } \sigma_{i, j} \bigabs{ X_{i, j} - M_{i, j} } } \le 2 C \sqrt{\frac {\log d} {m d}} \label{eq_nuc_norm_rad}\end{align}
+Recall our result from \eqref{eq_rade_bound}, if $m \ge d  r^2 \log (d\delta^{-1}) / \epsilon^2$, then the above Rademacher complexity is at most $\epsilon$.
+Therefore, based on \eqref{eq_rade_bound}, we could say that with probability at least $1 - \delta$, the recovery error of the minimizer must be at most $O(\epsilon)$.
+
+It remains to show that \eqref{eq_nuc_norm_rad} is true.
+By symmetry, the absolute function inside $R_n(\cH)$ can be skipped:
+\begin{align*}
+    R_n(\cH) = \ex{\sup_{X\in\cH} \frac 1 m \sum_{(i, j) \in \Omega} \sigma_{i, j} (X_{i, j} - M_{i, j})}
+\end{align*}
+Let us introduce a zero-one matrix $\Sigma$ such that $\Sigma_{i, j} = \sigma_{i, j}$ if $(i, j) \in \Omega$, and $\Sigma_{i, j} = 0$ otherwise.
+Hence, the above is equal to
+\begin{align*}
+    \exarg{\Omega, \sigma_{1:n}}{\sup_{X\in\cH} \frac 1 m \inner{\Sigma}{ X - M }}
+    &\le \ex{\sup_{X\in\cH} \frac 1 m \bignorms{\Sigma} \cdot \bignormnuc{X - M}} \\
+    &\le \frac {2C} {m} \ex{\bignorms{\Sigma}}
+\end{align*}
+Above we use this fact and both $X, M$ have nuclear norm bounded above by $C$.
+Hence, to finish the proof, we are left to deal with the expectation of $\bignorms{\Sigma}$.
+Here we'll use the claim that
+\[ \ex{\bignorms{\Sigma}} \le \sqrt{ \frac {m \log d} {d}} \]
+Showing this result requires using some facts related to the spectrum of random matrices, we'll cover this result at a later point in class.
+In summary, we have thus shown that
+\[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}} \]
+
+\paragraph{Next lecture:} use Rademacher complexity to study two-layer neural networks.
+{\bf Suggested readings:} Chapter 3.8 of \cite{liang2016cs229t}, Chapter 11 of \cite{zhang2023mathematical}.
+
