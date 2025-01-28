@@ -505,15 +505,15 @@ This result is quite powerful, since it holds for any independent random variabl
 As long as this function is not too sensitive to perturbations in one coordinate, we get good concentration.
 
 \paragraph{Proof of McDiarmid’s inequality:}
-Recall the definition of a Martingale sequence
+Recall the definition of a martingale sequence
 \begin{itemize}
     \item A sequence of $Z_0, Z_1, \dots, Z_n$ is a martingale sequence with respect to another sequence of random variables $X_1, X_2, \dots, X_n$ if and only if $Z_i$ only depends on $X_{1:i}$ and $\ex{Z_i | X_{1:i-1}} = Z_{i-1}$
 
-    \item For a Martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that $\ex{Z_i | Z_{< i}} = 0$ and $\ex{Z_i} \le R$. Then with probability at least $1 - \delta$,
+    \item For a martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that $\ex{Z_i | Z_{< i}} = 0$ and $\abs{Z_i} \le c_i$. Then with probability at least $1 - \delta$,
     \begin{align}\label{eq_azuma}
-        \sum_{i = 1}^t Z_i \le R \sqrt{2t \log(\delta^{-1})}
+        \sum_{i = 1}^n Z_i \le \sqrt{2\Big(\sum_{i=1}^n c_i^2\Big) \log(\delta^{-1})}
     \end{align}
-    For reference, see chapter 12.4 of \citet{mitzenmacher2017probability}.
+    For reference, see Chapter 12.4 of \citet{mitzenmacher2017probability}.\footnote{See also \url{https://en.wikipedia.org/wiki/Azuma\%27s_inequality}}
 \end{itemize}
 We’re going to construct a sequence
 \begin{align}
