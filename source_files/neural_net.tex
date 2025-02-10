@@ -271,7 +271,7 @@ When $m$ becomes very large, then by the law of large numbers, the average is cl
 This gives rise to the Neural Tangent Kernel evaluated at $x_, x_j$ as follows:
 \[ H^{\star}_{i, j} = x_i^{\top} x_j \exarg{ w \sim \cN(0, \id)  } { \sigma'(w^{\top} x_i) \sigma'(w^{\top} x_j) } \]
 
-\subsubsection{Convergence analysis}
+\subsubsection{Convergence analysis (Lecture 10)}
 
 Based on the NTK defined above, we now show that the neural network stays close to initialization long enough to get a small loss value.
 There are essentially two steps here:
@@ -316,6 +316,116 @@ There are two steps in the proof of this result:
     \item We then show that this implies the kernel matrix remains close to the NTK
 \end{itemize}
 
-\paragraph{Next lecture:} Wrapping up neural tangent kernels.
-Begin implicit regularization analysis.
-{\bf Suggested readings:} Chapter 9 of \cite{arora2020theory}.
+Consider the movement of a single weight vector $w_r$:
+\begin{align*}
+    \bignorms{ w_r(t) - w_r(0) } &= \bignorms{ \int_{0}^t \frac {d w_r(\tau)} {d \tau} d \tau } \\
+    &= \bignorms{ \int_{0}^t \frac 1 {\sqrt m} \sum_{i = 0}^n (u_i(\tau) - y_i ) a_r x_i \sigma'( w_r(\tau)^{\top} x_i ) d \tau } \\
+    &\le \int_{0}^t \bignorms{ \frac 1 {\sqrt m} \sum_{i= 0}^n (u_i(\tau) - y_i) a_r x_i \sigma'(w_r (\tau)^{\top} x_i) d\tau } \\
+    &\le \frac 1 {\sqrt m} \sum_{i=0}^n \int_0^t \bignorms{ (u_i(\tau) - y_i) a_r x_i \sigma'(w_r(\tau)^{\top} x_i)  }d\tau \le O\left(\frac {t n} {\sqrt m}\right),
+\end{align*}
+where we use the fact that the inputs $x_i, y_i$ and $a_r, u_i(\tau)$ are all bounded by some constants, and the derivative of $\sigma$ is also bounded by a constant (e.g., sigmoid).
+
+Consider the movement of a single entry of the kernel matrix
+\begin{align*}
+    H_{i, j}(t) - H_{i, j}(0) =& \frac 1 m \bigabs{\sum_{r = 1}^m \left( \sigma'(w_r(t)^{\top} x_i) \sigma'(w_r(t)^{\top} x_j) - \sigma'(w_r(0)^{\top} x_i) \sigma'(w_r(0)^{\top} x_j)\right) } \\
+    \le& \frac 1 m \bigabs{\sum_{r = 1}^m \sigma'(w_r(t))^{\top} x_i ( \sigma'(w_r(t)^{\top} x_j ) - \sigma'(w_r(0)^{\top} x_j) ) } \\
+    &+ \frac 1 m \bigabs{\sum_{r = 1}^m \sigma'(w_r(0)^{\top} x_j) (\sigma'(w_r(t)^{\top} x_i - \sigma'(w_r(0)^{\top} x_i))} \\
+    \lesssim& \frac 1 m \sum_{r = 1}^m \max_{i = 1}^m \bignorms{ \sigma'(w_r(t)^{\top} x_i) - \sigma'(w_r(0)^{\top} x_i) } \\
+    \le& O\left( \frac {t n} {\sqrt m} \right)
+\end{align*}
+
+Taken together, we have shown that if $m$ is large enough, then $H(t)$ will stay close to $H^{\star}$ throughout the entire gradient descent dynamic.
+
+\subsubsection{Implications of the neural tangent kernel analysis (Lecture 10)}
+
+The dynamics of network outputs are governed by the following approximation using the NTK matrix
+\[ \frac {d u(t)} {d t} \approx - H^{\star} (u(t) - y) \]
+We'll use this to describe two implications:
+i) Convergence to global minima;
+ii) Explaining why NTK converges faster using original labels than using random labels.
+
+Notice that this is a linear dynamical system.
+Denote the eigen-decomposition of $H^{\star}$ as $\sum_{ i= 1 }^n \lambda_i v_i v_i^{\top}$.
+Now we consider the dynamics of $u(t)$ on each eigenvector separately.
+Consider one eigenvector $v_i$ for instance.
+We have
+\[ \frac {d v_i^{\top} u(t)} {d t} \approx - v_i^{\top} H^{\star} (u(t) - y) = - \lambda_i v_i^{\top} u(t) + \lambda_i v_i^{\top} y, \]
+which is equivalent to
+\[ \frac {d v_i^{\top} (u(t) - y)} {d t} = - \lambda_i v_i^{\top} (u(t) - y) \]
+One function that satisfies this differential equation is when
+\[ v_i^{\top} (u(t) - y) = \exp(- \lambda_i t) \]
+Notice that $u(t) - y$ is the difference between predictions and training labels at time $t$.
+
+We would like to show that the difference converges to zero when $t$ is large.
+The above implies that each component of $u(t) - y$ projected to eigenvector $v_i$ converges to zero exponentially fast at a rate of $\exp(- \lambda_i t)$.
+
+Also notice that the eigenvectors $\set{v_i}_i$ form an orthonormal basis.
+Since we know that each component converges to zero, together they imply that $u(t) - y$ must also converge to zero.
+This shows that the outputs will eventually converge to the training labels, meaning the training loss will go to zero.
+
+Next, we can see that each component goes to zero at different rates.
+For larger eigenvalues, the convergence is faster.
+Hence in order to have fast convergence, we would like the projections of the labels onto the top eigenvectors to be large.
+
+For a set of labels, if they align with top eigenvectors, then gradient descent converges quickly.
+On the other hand, if the projections are uniform, or aligns with eigenvectors with small eigenvectors, then gradient descent converges with a slow rate.
+Below, we compare convergence rates of gradient descent between using original labels, random labels, and worst-case labels.
+Data: two classes of MNIST.
+Model: $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
+
+\begin{figure}
+    \centering
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{source_files/figures/randomlabel1.png}    
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{source_files/figures/randomlabel2.png}
+    \end{minipage}
+    \caption{Illustration of the loss and the projected values onto the eigenspace.}
+    \label{fig:enter-label}
+\end{figure}
+
+\subsection{Implicit regularization in over-parameterized matrix factorization (Lecture 11)}
+
+Recall that we discussed the matrix completion problem in lecture 6.
+Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting.
+
+\paragraph{Problem setup:}
+Suppose there is an underlying rank-$r$ matrix $X^{\star} \in \real^{d \times d}$.
+In particular, for the illustration of the analysis, we shall focus on the case of $X^{\star}$ being positive semi-definite.
+As for the input to the problem, suppose we have $m$ random Gaussian matrices whose entries are all drawn from $N(0, 1)$, denoted as $A_1, A_2, \dots, A_m$, all with dimension $d$ by $d$.
+In addition, suppose they are symmetric, for example, we could transform each $A_i$ as $(A_i + A_i^{\top}) / 2$.
+Let $y_i = \inner{A_i} {UU^{\top}}$, for $i = 1, 2, \dots, n$.
+
+A solution would be to find another positive semi-definite matrix $UU^{\top}$ so that the distance between $UU^{\top}$ and $X^{\star}$ is minimized.
+In particular, we shall consider the case that $U \in \real^{d \times d}$.
+Then, we set up a mean squared loss as follows:
+\[ \ell(U) = \frac 1 n \sum_{i=1}^n \left( \inner{UU^{\top}} {A_i} - y_i \right)^2 \]
+In practice, we see that this loss function has many solutions that render its loss to near zero, even though $UU^{\top}$ can be quite far from $X^{\star}$.
+A key observation is that the generalization behavior of $U$ should depend on the initialization.
+Next we shall make this precise by analyzing the gradient descent dynamic.
+
+Let $U_0 = \alpha \id$, for some small values of $\alpha$.
+Then, let the gradient descent update be given by
+\[ U_{t + 1} = U_t - \eta \nabla \ell(U_t) = (\id - \eta M_t) U_t, \]
+where \[ M_t = \frac 1 m \sum_{i=1}^m \inner{A_i}{U_t U_t^{\top} - X^{\star}}A_i \]
+
+\paragraph{Complete analysis in the rank-$1$ case:}
+We shall restrict the case to $r = 1$, where we can write $X^{\star} = u^{\star} {u^{\star}}^{\top}$, for some $u^{\star} \in \real^d$.
+Let $\id_{u^{\star}} = \id - \frac {u^{\star} {u^{\star}}^{\top}} {\bignorm{u^{\star}}^2}$.
+For simplicity, let's take the norm of $u^{\star}$ as $1$.
+Then, we decompose the iterates $U_t$ into two parts into the subspace of $u^{\star}$ and its complement:
+\begin{align*} 
+    U_t &= u^{\star} {u^{\star}}^{\top} U_t + (\id - \id_{u^{\star}} {u^{\star}}^{\top}) U_t \\
+        &\define u^{\star} r_t^{\top} + E_t,
+\end{align*}
+where we denote by $r_t = U_t^{\top} u^{\star}$, and $E_t = (\id - \id_{u^{\star}}) U_t$.
+
+We will show that the spectral norm and the Frobenius norm of the ``error term'' $E_t$ remains small throughout the iterations, whereas the ``signal'' term $r_t$ grows exponentially fast (in the sense that the norm of $r_t$ grows to the norm of $u^{\star}$.) 
+Note that any solution with $\bignorm{r_t} = 1$ and $E_t = 0$ will give exact recovery, and for the purpose of this section we will show that $\bignorm{r_t}$ will converge approximately to $1$ and $E_t$ stays small.
+
+\paragraph{Next lecture:} Wrapping up the implicit regularization analysis.
+Office hour on Wednesday is canceled due to a travel arrangement (feel free to email me to schedule a zoom meeting if you'd like to chat!)
+{\bf Suggested readings:} \cite{li2018algorithmic}.
