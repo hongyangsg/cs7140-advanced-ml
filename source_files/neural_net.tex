@@ -328,9 +328,9 @@ where we use the fact that the inputs $x_i, y_i$ and $a_r, u_i(\tau)$ are all bo
 Consider the movement of a single entry of the kernel matrix
 \begin{align*}
     H_{i, j}(t) - H_{i, j}(0) =& \frac 1 m \bigabs{\sum_{r = 1}^m \left( \sigma'(w_r(t)^{\top} x_i) \sigma'(w_r(t)^{\top} x_j) - \sigma'(w_r(0)^{\top} x_i) \sigma'(w_r(0)^{\top} x_j)\right) } \\
-    \le& \frac 1 m \bigabs{\sum_{r = 1}^m \sigma'(w_r(t))^{\top} x_i ( \sigma'(w_r(t)^{\top} x_j ) - \sigma'(w_r(0)^{\top} x_j) ) } \\
+    \le& \frac 1 m \bigabs{\sum_{r = 1}^m \sigma'(w_r(t)^{\top} x_i) ( \sigma'(w_r(t)^{\top} x_j ) - \sigma'(w_r(0)^{\top} x_j) ) } \\
     &+ \frac 1 m \bigabs{\sum_{r = 1}^m \sigma'(w_r(0)^{\top} x_j) (\sigma'(w_r(t)^{\top} x_i - \sigma'(w_r(0)^{\top} x_i))} \\
-    \lesssim& \frac 1 m \sum_{r = 1}^m \max_{i = 1}^m \bignorms{ \sigma'(w_r(t)^{\top} x_i) - \sigma'(w_r(0)^{\top} x_i) } \\
+    \lesssim& \frac 1 m \sum_{r = 1}^m \max_{i = 1}^n \bignorms{ \sigma'(w_r(t)^{\top} x_i) - \sigma'(w_r(0)^{\top} x_i) } \\
     \le& O\left( \frac {t n} {\sqrt m} \right)
 \end{align*}
 
