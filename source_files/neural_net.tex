@@ -575,6 +575,151 @@ The above suggests that $r_t$ will eventually drift towards a vector whose norm 
 Putting things together, we essentially showed that $E_t$ will remain relatively smaller than $r_t$, since $E_t$ only grows by a rate of $1 + \eta \delta$.
 Meanwhile, $r_t$ grows by a rate of $1 + O(\eta)$, when it is still bounded away from $1$.
 
-\paragraph{Next lecture:} Wrapping up the implicit regularization analysis.
-Office hour on Wednesday is canceled due to a travel arrangement (feel free to email me to schedule a zoom meeting if you'd like to chat!)
-{\bf Suggested readings:} \cite{li2018algorithmic}.
+\subsection{Benign overfitting (Lecture 12)}
+
+Benign overfitting represents yet another approach to tackle the mystery behind the generalization of deep neural networks \citep{bartlett2020benign}.
+The basic hypothesis behind \hl{benign overfitting} stipulates that for a prediction rule $\hat f$, we can decompose it into
+\[ \hat f = \hat f_0 + \Delta,  \]
+where $\hat f_0$ is a simple component useful for prediction, $\Delta$ is a useful component useful for benign overfitting.
+While $\Delta$ is not useful for prediction, it is benign.
+In the setting of over-parameterized matrix sensing from the previous section, we see that $u^{\star }{r_t}^{\top}$ corresponds to $\hat f_0$, whereas $E_t$ relates to $\Delta$.
+
+To better understand the phenomenon of benign overfitting, we shall now consider the case of linear regression.
+\begin{itemize}
+    \item We denote the covariates as $x \in \real^d$ and the label as $y \in \real$.
+    \item We assume that $x$ is sub-Gaussian, meaning that there exists $c > 0$ such that $\Pr\left[\bignorm{x}^2 > c \ex{\bignorm{x}^2}\right] \le \delta$.
+    Moreover, $\ex{y \mid x} = x^{\top} \theta^{\star}$.
+    \item Let us define
+    \begin{align*}
+        \Sigma &= \ex{x x^{\top}} = \sum_{i=1}^d \lambda_i v_i v_i^{\top}, \text{ for } i = 1, 2, \dots, d \\
+        \theta^{\star} &= \arg \min_{\theta} \ex{(y - x^{\top} \theta)^2 } \\
+        \sigma^2 &= \ex{(y - x^{\top} \theta^{\star})^2}
+    \end{align*}
+\end{itemize}
+
+A key concept here to understand benign overfitting is the \emph{minimum norm interpolator}.
+Let $X \in \real^{n \times d}$ denote the features of $n$ samples.
+Let $y = [y_1, y_2, \dots, y_n]$ denote the labels.
+We have the estimator $\hat \theta = (X^{\top} X)^{\dagger} X^{\top} y$, which solves the problem
+\begin{align*}
+    \min & \bignorm{\theta}^2 \\
+    \mbox{s.t.} & \bignorm{X \theta - y}^2 = \min_{\beta} \bignorm{X \beta - y}^2
+\end{align*}
+
+Now we define the excess prediction risk of $\hat \theta$ as
+\begin{align*}
+    R(\hat \theta) &\define \exarg{x, y}{(y - x^{\top} \hat \theta)^2} - \min_{\theta} \exarg{x, y}{(y - x^{\top} \theta)^2} \\
+    & = \exarg{x, y} { (y - x^{\top} \hat \theta)^2 - (y - x^{\top} \theta^{\star})^2 } \\
+    & = (\hat \theta - \theta^{\star})^{\top} \Sigma (\hat \theta - \theta^{\star}),
+\end{align*}
+where we are using the fact that $\ex{xx^{\top}} = \Sigma$ and $\ex{y | x} = x^{\top}\theta^{\star}$.
+Therefore, $\Sigma$ determines the importance of parameter directions.
+Here is the question: when can the label noise be hidden in $\hat\theta$ without hurting the prediction accuracy?
+
+\paragraph{Characterization of benign overfitting \citep{bartlett2020benign}:}
+There exists universal constants $b, c$ such that the excess risk of the minimum norm interpolator satisfies:
+\[ R(\hat \theta) \le c \left( \textup{bias}(\theta^{\star}, \Sigma, n) + \sigma^2 \left( \frac {k^{\star}} {n } + \frac n {R_{k^{\star}}(\Sigma)} \right) \right), \]
+where $k^{\star} = \min \set{k \ge 0 : r_k(\Sigma) \ge bn}$, and
+\begin{align*}
+    r_k(\Sigma) &\define \frac {\sum_{i > k} \lambda_i } {\lambda_{k+1}} \\
+    R_k(\Sigma) &\define \frac {\Big(\sum_{i > k} \lambda_i\Big)^2} {\sum_{i > k} \lambda_i^2}
+\end{align*}
+And the bias is given by
+\begin{align*}
+    \textup{\bias}(\theta^{\star}, \Sigma, n)
+    = \bignorm{\theta^{\star}_{k+1 : \infty}}_{\Sigma_{k+1 : \infty}}^2 + \bignorm{\theta^{\star}_{1 : k}}^2_{\Sigma^{-1}_{1 : k}} \left( \frac {\sum_{i > k} \lambda_i} n \right)^2
+\end{align*}
+Recall that the benign overfitting prediction rule $\hat f$ decomposes as $\hat f_0 + \Delta$.
+\begin{itemize}
+    \item $\hat f_0$ is the prediction component: $k^{\star}$-dimensional subspace corresponding to $\lambda_1, \dots, \lambda_{k^{\star}}$
+
+    \item $\Delta$ is the benign overfitting component: orthogonal subspace.
+    $\Delta$ is benign only if $R_{k^{\star}} \gg n$
+\end{itemize}
+Intuition: To avoid harming prediction accuracy, the noise energy must be distributed across many unimportant directions.
+
+\subsection{PAC-Bayes generalization bounds (Lecture 12/13)}
+
+Next, we present a PAC-Bayes generalization bound that depends on the trace of the Hessian.
+Our bound can be related to the notion of trace norm, which has been used in earlier works for quantifying sample complexity in the context of matrix recovery \citep{srebro2005rank}.
+%Its use as a generalization measure for fine-tuning has not been studied before.
+
+Concretely, suppose we have a pretrained model in the fine-tuning setting.
+This can be viewed as our prior belief of the target hypothesis in PAC-Bayes analysis.
+Once we have learned a model (though fine-tuning), we can view this as the posterior in PAC-Bayes analysis.
+Let $\cD \subseteq \cX \times \cY$ be an unknown data distribution, supported on the feature space $\cX$ and the label space $\cY$.
+Given $n$ random samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$ drawn from $\cD$, the empirical loss (measured by loss function $\ell$) applied to a model $f_W$ (with $W \in \real^d$) is:
+\[ \hat L(W) = \frac 1 n \sum_{i = 1}^n \ell(f_W(x_i), y_i). \]
+The population loss is %given by the expected loss of an unseen sample $(x, y)$ drawn from $\cD$
+$L(W) = \exarg{(x, y) \sim \cD}{\ell(f_W(x), y)}.$
+It is sufficient to think that the empirical loss is less than the population loss, and the goal is to bound the gap between $\hat L(W)$ and $L(W)$ from above \citep{shalev2014understanding}.
+
+Let $W$ be any learned hypothesis within the hypothesis space, denoted as $\cH$.
+Our generalization bound will apply uniformly to $W$ within the hypothesis space.
+%assuming that $\cH$ is centered at the pretrained initialization and has a bounded radius of $r > 0$.
+We state our result, including the required assumptions, as follows.
+
+\paragraph{Noise sensitivity generalization bounds:}
+Assume that the loss function $\ell$ is bounded between $0$ and $C$ for a fixed constant $C > 0$ on the data distribution $\cD$.
+Suppose $\ell(f_W(\cdot), \cdot)$ is twice-differentiable in $W$ and the Hessian matrix $\nabla^2[\ell(f_W(\cdot), \cdot)]$ is Lipschitz continuous within the hypothesis space.
+Suppose for any $W$ in $\cH$, the trace norm of the Hessian is less than $\alpha$:
+\begin{align}
+    \alpha \define \max_{W\in\cH} \max_{(x, y) \sim \cD} \bigtr{\nabla^2 \ell(f_W(x), y)}, \label{eq_trace_norm}
+\end{align}
+    %(in the sense of equation \eqref{eq_trace_norm}), 
+and the $\ell_2$-norm of $W$ is at most $r$ for any $W \in \cH$.
+Then, for any $W$ in $\cH$, with probability at least $1 - \delta$ for any $\delta > 0$, the following must hold, for any $\epsilon$ close to zero:
+\begin{align}
+    L(W) \le (1 + \epsilon) \hat L(W) + (1 + \epsilon) \sqrt{\frac {C \alpha r^2}{n}} + O\Big(n^{-\frac 3 4}\log(\delta^{-1})\Big). \label{eq_main_1}
+\end{align}
+    %where the trace norm of the hypothesis space taken over the data distribution $\cD$ is given by
+
+\paragraph{Proof Sketch:}
+We provide a high-level illustration of the proof of equation \eqref{eq_trace_norm}.
+Let $\cQ$ denote the \textit{posterior} distribution. Specifically, we consider $\cQ$ as being centered at the learned hypothesis $W$ (which could be anywhere within the hypothesis space), given by a Gaussian distribution $\cN(W, \sigma^2 \id_p)$, where $\id_p$ denotes the $p$ by $p$ identity matrix.
+Given a sample $U\sim \cN(0, \sigma^2\id_p)$, let the perturbed loss be given by 
+\begin{align}
+    \ell_{\cQ}(f_W(x), y) = \exarg{U}{\ell(f_{W + U}(x), y)}. \label{eq_lq}
+\end{align}
+Then, let $\hat L_{\cQ}(W)$ be the averaged value of $\ell_{\cQ}(f_W(\cdot), \cdot)$, taken over $n$ empirical samples from the training dataset.
+Likewise, let $L_{\cQ}(W)$ be the population average of $\ell_{\cQ}(f_W(\cdot), \cdot)$, in expectation over an unseen data sample from the underlying data distribution.
+
+Having introduced the notations, we start with the linear PAC-Bayes bound \citep{catoni2007pac,mcallester2013pac,alquier2021user}. See result stated as follows:
+
+\paragraph{(Linear) PAC-Bayes bound:} Suppose the loss function $\ell(f_W(x),y)$ lies in a bounded range $[0, C]$ given any $x\in\cX$ with label $y$.
+For any $\beta\in (0,1)$ and $\delta\in (0,1)$, with probability at least $1-\delta$, the following holds:
+\begin{equation}
+    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(KL(\cQ||\cP)+\log\frac{1}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
+\end{equation}
+%which holds with probability $1 - \delta$ for any $\delta\in(0, 1)$ and $\beta \in (0, 1)$:
+%\begin{align}
+%    L_{\cQ}(W) \le \frac 1 {\beta} \hat L_{\cQ}(W) + \frac{C(KL(\cQ || \cP) + \log(\delta^{-1}))}{2\beta(1 - \beta) n}, \label{eq_pacbayes}
+%\end{align}
+where $\cP$ refers to the \textit{prior} distribution, $C$ refers to the upper bound on the loss value $\ell$.
+For analyzing fine-tuning, we view $\cP$ as centered at the pretrained model, with covariance matrix $\sigma^2 \id_p$.
+By Taylor's expansion of $\ell_{\cQ}$, we show that:
+\begin{align}
+    L_{\cQ}(W) &= L(W) + \frac {\sigma^2} 2 \exarg{(x,y)\sim\cD}{\bigtr{\nabla^2 \ell(f_{W}(x), y)}} + O(\sigma^3) \label{eq_taylorh1}\\
+    \hat L_{\cQ}(W) &= \hat L(W) + \frac {\sigma^2} {2n} \sum_{i = 1}^n \bigtr{\nabla^2 \ell(f_W(x_i), y_i)} + O(\sigma^3). \label{eq_taylorh2}
+\end{align}
+Since the Hessian operator is Lipschitz continuous by assumption, we can bound the gap between the above two quantities with $\epsilon$-covering arguments. % (see Lemma \ref{lemma_union_bound} for the precise statement).
+By plugging in these results back to the PAC-Bayes bound of equation \eqref{eq_pac}, after some calculation, we can get:
+\begin{align}
+    L(W) \le \frac 1 {\beta} \hat L(W) + \frac{\sigma^2(1 - \beta) \alpha}{2\beta} + \frac{C r^2 / 2\sigma^2}{2\beta(1 - \beta) n} + O\left(\sigma^3 + \frac{\sigma^2 \sqrt p}{\sqrt n} + \frac{\log(\delta^{-1})}{n}\right). \label{eq_intermediate}
+\end{align}
+In particular, the above uses the fact that the $\ell_2$-norm of $W$ is less than $r$ for any $W \in \cH$. The KL divergence is discussed below.
+Suppose $\cP = N(X, \Sigma)$ and $\cQ = N(Y, \Sigma)$ are both Gaussian distributions with mean vectors given by $X\in\real^p, Y\in\real^p$, and population covariance matrix $\Sigma \in \real^{p \times p}$.
+The KL divergence between $\cP$ and $\cQ$ is equal to
+\begin{align*}
+    KL(\cQ||\cP) = \frac{1}{2}(X- Y)^\top \Sigma^{-1} (X - Y).
+\end{align*}
+Specifically, if $\Sigma = \sigma^2\id_p$, then the above simplifies to
+\begin{align*}
+    KL(\cQ||\cP) = \frac{\bignorms{X - Y}^2}{2\sigma^2}.
+\end{align*}
+
+By choosing $\sigma^2$ and $\beta$ to minimize equation \eqref{eq_intermediate}, we will obtain equation \eqref{eq_main_1}.
+This summarizes the high-level proof idea.
+
+\paragraph{Next lecture:} Continue on PAC-Bayes bounds and how they can be used to derive non-vacuous generalization bounds for real-world data.
+{\bf Suggested readings:} \cite{zhang2024noise}.

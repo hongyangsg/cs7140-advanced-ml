@@ -167,7 +167,14 @@ For each of the following questions, provide two to three sentences of explanati
     What would you do to mitigate the problem?
     Can you propose an algorithm based on the nuclear norm minimization problem we discussed in class to address this issue? 
 
-    \item Note: I'll add two more questions in the next week or so after we have done the lecture materials.
+    \item (5 points) Recall that the best rank-$k$ approximation of $M$ in Frobenius norm is attained by $B = \Sigma_{i=1}^k\sigma_i u_i v_i^T.$ Show that $$||M-B||_{F}=\sqrt{\sum_{i=k+1}^r\sigma_i^2}.$$
+
+    \item (5 points) Recall that the nuclear norm of a matrix $A\in \mathbb{R}^{m\times n}$ is defined as its sum of singular values:
+    $$||A||_{\star} = \sum_{i=1}^{\min(m, n)} \sigma_i(A),$$
+    where $\sigma_i(A)$ is the $i$-{th} largest singular value of $A$.
+    Show that the nuclear norm $||\cdot||_{\star}$ is convex;
+    that is, for any $\alpha \in [0,1]$ and two arbitrary matrices $A, B\in \real^{m\times n}$, show that the following inequality holds
+    \[ ||\alpha A + (1 - \alpha)B||_{\star} \leq\alpha ||A||_{\star} + (1 - \alpha) ||B||_{\star}. \]
 \end{itemize}
 
 \end{document}
