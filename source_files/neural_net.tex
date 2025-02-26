@@ -743,11 +743,11 @@ Using Jensen's inequality, the left is greater than \[2(n-1)\left(\exarg{f\sim\c
 Taking square root on both sides gives us the McAllester's bound.
 
 \paragraph{PAC-Bayessian bound (Catoni):}
-Another version of the PAC-Bayesian theorem is shown by Catoni \citep{catoni2007pac,mcallester2013pac,alquier2021user}.
+Another version of the PAC-Bayesian theorem is shown by \cite{catoni2007pac} (see also Theorem 3.5, \cite{alquier2021user}).
 Suppose the loss function $\ell(f_W(x),y)$ lies in a bounded range $[0, C]$ given any $x\in\cX$ with label $y$.
 For any $\beta\in (0,1)$ and $\delta\in (0,1)$, with probability at least $1-\delta$, the following holds:
 \begin{equation}
-    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(KL(\cQ||\cP)+\log\frac{1}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
+    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(KL(\cQ||\cP)+\log\frac{2 \sqrt n}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
 \end{equation}
 %which holds with probability $1 - \delta$ for any $\delta\in(0, 1)$ and $\beta \in (0, 1)$:
 %\begin{align}
@@ -756,7 +756,8 @@ For any $\beta\in (0,1)$ and $\delta\in (0,1)$, with probability at least $1-\de
 where $\cP$ refers to the \textit{prior} distribution, $C$ refers to the upper bound on the loss value $\ell$.
 For analyzing fine-tuning, we view $\cP$ as centered at the pretrained model, with covariance matrix $\sigma^2 \id_p$.
 
-\paragraph{Noise sensitivity generalization bounds:}
+\subsection{Noise sensitivity generalization bounds (Lecture 14)}
+
 Let $W$ be any learned hypothesis within the hypothesis space, denoted as $\cH$.
 This generalization bound will apply uniformly to $W$ within the hypothesis space.
 %assuming that $\cH$ is centered at the pretrained initialization and has a bounded radius of $r > 0$.
@@ -774,6 +775,42 @@ Then, for any $W$ in $\cH$, with probability at least $1 - \delta$ for any $\del
     L(W) \le (1 + \epsilon) \hat L(W) + (1 + \epsilon) \sqrt{\frac {C \alpha r^2}{n}} + O\Big(n^{-\frac 3 4}\log(\delta^{-1})\Big). \label{eq_main_1}
 \end{align}
     %where the trace norm of the hypothesis space taken over the data distribution $\cD$ is given by
+
+An important takeaway of this bound is that we could now measure the RHS in practice, and this leads to a non-vacuous bound on the generalization error.
+%We demonstrate that the generalization bound of Theorem \ref{theorem_hessian} accurately correlates with empirical generalization errors.
+We experiment with seven methods, including fine-tuning with and without early stopping, distance-based regularization, label smoothing, mixup, etc.
+Figure \ref{fig:hessian_reg} shows that the Hessian measure (i.e., the second part of equation \eqref{eq_main_1}) correlates with the generalization errors of these methods.
+Second, we plot the Hessian measure (averaged over all layers) between fine-tuning with implicit (early stopping) regularization and explicit (distance-based) regularization.
+%We have also included training from scratch as a contrast illustration.
+We find that the Hessian measure is smaller for explicit regularization than implicit regularization.
+
+\begin{figure*}[!t]
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_indoor_3_2.pdf}
+        \caption{ResNet-50}\label{fig_reg_res1}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_caltech_3_2.pdf}
+        \caption{ResNet-50}\label{fig_reg_res2}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_mrpc_3_2.pdf}
+        \caption{BERT-Base}\label{fig_reg_bert}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/average_di.pdf}
+        \caption{Average $\cD_i$}\label{fig_avg_d}
+    \end{subfigure}
+    \caption{
+    \ref{fig_reg_res1}, \ref{fig_reg_res2}, \ref{fig_reg_bert}: The Hessian measures accurately correlate with empirical generalization errors for seven fine-tuning methods.
+    \ref{fig_avg_d}: $\cD_i$ is smaller for fine-tuning with explicit distance-based regularization than implicit early-stopped regularization.
+    Each dot represents the generalization error and the Hessian measures for one fine-tuned model using a particular regularization method.}
+    \label{fig:hessian_reg}
+\end{figure*}
 
 \paragraph{Proof Sketch:}
 We provide a high-level illustration of the proof of equation \eqref{eq_trace_norm}.
@@ -811,5 +848,5 @@ Specifically, if $\Sigma = \sigma^2\id_p$, then the above simplifies to
 By choosing $\sigma^2$ and $\beta$ to minimize equation \eqref{eq_intermediate}, we will obtain equation \eqref{eq_main_1}.
 This summarizes the high-level proof idea.
 
-\paragraph{Next lecture:} Continue on PAC-Bayes bounds and how they can be used to derive non-vacuous generalization bounds for real-world data.
-{\bf Suggested readings:} \cite{ju2023generalization}.
+\paragraph{Next lecture:} Start talking about statistical transfer learning.
+{\bf Suggested readings:} \cite{zhang2024noise,ju2023generalization}.
