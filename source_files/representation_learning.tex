@@ -1,36 +1,45 @@
 \section{Statistical modeling of representation learning}
 
-In many modern ML settings, one would like to use a large, often pretrained model, to solve a downstream task.
+In many modern ML settings, one would like to use a large, pretrained model, to solve a downstream task.
 Instead of training from scratch, these models provide a representation of the input that are then used to make predictions on the input data.
 While this paradigm has been quite useful in practice, practitioners have also observed problematic outcomes.
 For instance, negative transfer refers to a situation where transfer learning from a source task to predict a target task negatively hurts the prediction performance, as compared to learning using the target task data alone.
+However, exactly how and why negative transfer occurs has not been fully resolved --- 
 Next, we provide a rigorous study of this phenomenon in the setting of transfer learning linear regression.
 
 \subsection{Transfer learning linear regression}
 
 We first introduce the problem setup.
+Suppose there are $n_1$ samples drawn from a $p$-dimensional distribution $D_1$ with real-valued labels in a \emph{source} task.
+Suppose there are $n_2$ samples drawn from a $p$-dimensional distribution $D_2$ with real-valued labels in the \emph{target} task.
 Let $x_1^{(i)}, x_2^{(i)}, \dots, x_{n_i}^{(i)}$ denote feature covariates.
 Let $y_1^{(i)}, y_2^{(i)}, \dots, y_{n_i}^{(i)}$ be the prediction labels.
-Recall that $n_1$ and $n_2$ refer to each task's sample size.
-We assume a linear model specificed by an unknown parameter vector $\beta^{(i)} \in \real^p$:
+%Recall that $n_1$ and $n_2$ refer to each task's sample size.
+We assume a linear model specified by an unknown parameter vector $\beta^{(i)} \in \real^p$:
 \begin{align*}
     y_j^{(i)} = \big(x_j^{(i)}\big)^{\top} {\beta^{(i)}} + \varepsilon_j^{(i)}, ~ \text{ for any } \  j = 1,\dots,n_i, \label{eq_linear}
 \end{align*}
 where $\varepsilon^{(i)}_j\in\real$ denotes a random noise variable with mean zero and variance $\sigma^2$.
-We refer to the first task as the \emph{source} and the second task as the \emph{target} for ease of presentation.
+We refer to the first task as the \emph{source} task and the second task as the \emph{target} task for ease of presentation.
 We assume $n_2 > p$ while $n_1$ can be either less or greater than $p$.
 
-We study random designs where the covariates are given by
+\paragraph{The design matrix.}
+In linear regression, there is typically a distinction between fixed designs vs. random designs.
+Fixed designs refer to a situation where the covariates are deterministic, e.g., think of the population demographic data for one example.
+By contrast, random designs correspond to cases where the covariates may involve observational uncertainties.
+For this section, we shall study random designs where the covariates are given by
 \[ x_j^{(i)} = \big(\Sigma^{(i)}\big)^{\frac 1 2} z_{j}^{(i)}, \text{ for } i\in\{1,2\} \text{ and for any } j = 1,\dots,n_i, \]
 where $z_j^{(i)}$ consists of independent and identically distributed entries of mean zero and variance one, and $\Sigma^{(1)} \in \real^{p \times p}$ and $\Sigma^{(2)} \in \real^{p \times p}$ denote the population covariance matrices.
 Let $X^{(i)}=(x_1^{(i)},\ldots,x_{n_i}^{(i)})^\top \in\real^{n_i \times p}$ denote a matrix that corresponds to all the covariates of task $i$, for $i \in \{1, 2\}$.
 
 Let $Y^{(1)}\in \real^{n_1}$, $Y^{(2)}\in \real^{n_2}$ be the vectors of labels.
-Then, we minimize the following objective, parameterized by a shared variable $B \in \real^{p}$:
+Then, consider the following objective, parameterized by a shared variable $B \in \real^{p}$:
 \begin{align}\label{eq_hps}
     \ell(B) = \bignorm{X^{(1)} B - Y^{(1)}}^2 + \bignorm{X^{(2)} B - Y^{(2)}}^2.
 \end{align}
 Notice that $B$ provides a shared feature vector for both tasks.
+This way of estimation is consistent with the hard parameter sharing (HPS) architecture that has been used in the earlier literature \citep{caruana1997multitask}.
+Thus, we shall call the minimizer of $\ell(B)$ the HPS estimator, denoted as $\hat\beta_2^{\MTL}$ for short.
 
 \paragraph{Bias and variance:}
 The risk of $\hat{\beta}_i^{\MTL}$ over an unseen sample $(x,y)$ of the target task $i$ is
@@ -42,7 +51,7 @@ The excess risk is the difference between the above risk and the expected risk o
 \begin{align}\label{HPS_loss}
     L(\hat{\beta}_i^{\MTL}) := \left\| {\Sigma^{(i)}}^{\frac 1 2} \left(\hat{\beta}_i^{\MTL} - \beta^{(i)}\right)\right\|^2.
 \end{align}
-We shall treat task two as the target task and treat task one as the source task.
+%We shall treat task two as the target task and treat task one as the source task.
 
 Next, we present a bias-variance decomposition of the excess risk of HPS.
 Denote the sum of both tasks' sample covariance matrix as:
@@ -69,9 +78,9 @@ Plugging this into the excess risk, we get that in expectation over the randomne
 \[ \ex{L(\hat{\beta}^{\MTL}_2)} = L_{\bias} + L_{\vari} \]
 
 \paragraph{Implications:}
-We can now compare the above bias-variance to that of single-task learning.
+We can now compare the above bias-variance to that of single-task learning on the target task.
 That would just be \[ \sigma^{2} \tr\big[\Sigma^{(2)} ( (X^{(2)})^{\top} X^{(2)} )^{-1} \big], \]
-which is the bias of the ordinary least squares (OLS) estimator for the target task.
+which is the variance of the ordinary least squares (OLS) estimator for the target task.
 The bias and variance decomposition above allows us to reason about transfer effects by comparing the bias and variance of HPS with that of OLS.
 The bias of HPS is always larger than that of OLS.
 On the other hand, the variance of HPS is always lower than that of OLS.
@@ -113,6 +122,7 @@ With high probability over the randomness of training samples and model vectors.
         \end{align}
     \item If ${\mu^2} \frac{\bigtr{\Sigma^{(1)}}}{p} \ge \frac{\sigma^2 n_2} {2(n_2 - p)}$, then equation \eqref{HPS_ge_OLS} holds for any $n_1 > p$. %(cf. condition \ref{assm2}).
 \end{enumerate}
+Figure \ref{fig_motivation} demonstrates an illustration of this tradeoff.
 
 \begin{figure*}
     \centering
@@ -230,6 +240,7 @@ We illustrate the behavior of the HPS estimator in the multitask setting as foll
 		\label{fig_sec4_transfer}
 	\end{subfigure}
 	\caption{Illustration of transfer effects in the random-effects model with multiple source tasks.
+    In particular, $\mu$ indicates the extent of model shift --- higher values of $\mu$ means greater differences between model vectors across tasks.
 	Figure \ref{fig_sec4_width} shows that for rank $r$ from $1$ to $10$, the lowest excess risk of task $t$ is achieved at $r = 1$ (averaged over three random seeds).
 %	This simulation uses $\mu = 0.05$ and is .
 	Figure \ref{fig_sec4_transfer} fixes $r = 1$ and varies $\mu, n$.
