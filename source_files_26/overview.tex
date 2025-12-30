@@ -1,0 +1,183 @@
+\section{Overview}
+\subsection{What is this course about? (Lecture 1)}
+
+Machine learning has been increased used in technology platforms and products, affecting our daily lives.\footnote{ChatGPT reportedly has 300 million weekly active users: \href{https://www.cnbc.com/2024/12/04/openais-active-user-count-soars-to-300-million-people-per-week.html}{CNCB news, 2024}; Claude reportedly has 4.5 million monthly active users, \href{https://www.anthropic.com/customers/wrtn}{anthropic}.}
+Machine learning involves a collection of models, algorithms, and engineering frameworks:
+\begin{itemize}
+    \item Regression and classification: least squares estimation, logistic regression, LDA, bias-variance tradeoff, cross-validation.
+    \item Neural networks and deep learning: CNNs, backpropagation, foundation models, language modeling.
+    \item Unsupervised learning: dimension reduction (e.g., PCA), clustering, contrastive learning.
+    \item Causal machine learning: study the cause-and-effect with a powerful machine learning model.
+    \item Generative AI: diffusion models, multi-modal learning.
+    \item NumPy, Sklearn, PyTorch, TensorFlow, Hugging Face.
+\end{itemize}
+
+This course aims to uncover the common \hl{statistical principles} underlying the diverse array of methods.
+This class is mostly about the theoretical analysis of learning algorithms and models. Many of the techniques introduced in this course---which involve a beautiful blend of probability, linear algebra, and optimization---are separate fields in their respective discipline with independent interests outside of machine learning.
+For example, we will study the supreme of a complex random variable corresponding to the outcome of a learning algorithm applied to train a neural network model.
+We will show how to design estimation algorithms when we are working under distribution shifts between training and test datasets.
+
+From a practical point of view, studying the underlying working mechanisms of a learning algorithm can deepen our understanding of how things work.
+For example, suppose we want to build a classifier to predict the topic of a document (e.g., sports, politics, technology, etc).
+We train a logistic regression model with word frequencies as features and obtain a training accuracy of 90\% on 1000 training documents and a test accuracy of 85\% on 1000 test documents.
+\begin{itemize}
+    \item How reliable are these numbers? If we resample the training data, can we expect the same results?
+    \item How much will the training and test accuracies increase if we double the number of training documents?
+    \item What if we increase the number of features (e.g., use tri-occurrence of words)? Does regularization help?
+\end{itemize}
+
+There is obviously a clear gap between theoretical analysis and the practical performance of an algorithm.
+For instance, theoretical analysis is usually conducted under strong assumptions, which limit the implications one could draw from the theoretical results.
+The goal, instead, is to build a deeper understanding through theoretical analysis.
+
+The course materials are divided into three parts: \emph{fundamental concepts of statistical learning} (January), \emph{generalization of neural networks and deep learning} (February), \emph{statistical modeling of representation learning, reinforcement learning, and beyond} (March).\footnote{April will be dedicated to course project presentations.}
+
+\subsection{Basic setup of supervised learning (Lecture 1)}
+
+Central questions: \emph{Does minimizing training error lead to low test error?}
+\emph{How does the generalization ability depend on the model architecture and the training algorithm?}
+It turns out that answering these questions is highly non-trivial as it also depends on the underlying data distribution.\footnote{A recent empirical study highlights empirical scaling laws as key metrics for training large language models: \href{https://arxiv.org/abs/2001.08361}{paper} (see also \href{https://openai.com/index/scaling-laws-for-neural-language-models/}{openai} page).}
+
+To formally study these questions, let us first describe the mathematical setup:
+\begin{itemize}
+    \item Let $\cX$ denote the feature space. Let $\cY$ denote the space of all possible outcomes. Binary classification example: $\cX=\real^d$, $\cY=\set{+1,-1}$
+    
+    \item Consider the problem of predicting an output $y \in \cY$ given an input $x\in\cX$.
+
+    \item Let $\cH$ be a set of hypotheses. Linear model example: \[ \cH = \set{x \rightarrow \beta^{\top} x + \eta: \forall \beta \in \real^d, \eta\in\real} \]
+
+    \item Let $\ell: (\cX, \cY) \times \cH \rightarrow \real$ be a loss function. For example, the mean squared error (MSE) applied to linear models is
+    \[ \ell((x, y), \beta) = \left(\beta^{\top}x + \eta - y\right)^2, \forall \beta\in\real^d, \forall\eta\in\real \]
+
+    \item Given $n$ training data samples, denoted by $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$, the training loss (or empirical risk) of a hypothesis $h\in\cH$ is defined as
+    \begin{align}
+        \hat L(h) = \frac 1 n \sum_{i=1}^n \ell(h(x_i), y_i), \forall h \in \cH
+    \end{align}
+\end{itemize}
+
+We make a critical assumption about the data-generating process. We assume that every $x_i, y_i$ pair is drawn independently and identically from an unknown distribution $\bP^{\star}$, supported on $\cX \times \cY$.
+
+The test loss (or expected risk) of a hypothesis $h\in\cH$ is then given by
+\begin{align}
+    L(h) = \exarg{(x, y)\sim\bP^{\star}}{\ell(h(x), y)}.
+\end{align}
+\paragraph{Remarks:}
+\begin{itemize}
+    \item We have assumed the training and test distributions are the same. While this assumption does not hold exactly in practice, morally speaking, the training and test distributions have to be related.
+    
+    \item Formulating what it means to be related and not related, and dealing with the discrepancy between training and test data is studied under the area of domain adaptation or transfer learning.
+
+    \item The independence assumption, which also does not hold exactly in practice, ensures that more training data gives us more information.
+\end{itemize}
+
+\paragraph{Empirical risk minimization:} Consider minimizing the training loss
+\begin{align}
+    \hat h_{\erm} \leftarrow \argmin_{h \in \cH} \hat L(h).
+\end{align}
+What can say that the relationship between $\hat L(\hat h_{\erm})$ and $L(\hat h_{\erm})$?
+A key challenge is that the randomness of $\hat h_{\erm}$ now depends on $\hat L$. Thus, $\hat L(\hat h_{\erm})$ involves a correlation between the training data samples and the minimizing hypothesis.
+A central aspect we will tackle in the first part of the course is to develop the machinery to tackle this challenge.
+
+\paragraph{Uniform convergence:} We show provide statements of the following flavor
+
+\begin{mdframed}[
+    roundcorner=10pt,
+    leftmargin=0.1\textwidth,
+    rightmargin=0.1\textwidth]
+    With probability at least $1-\delta$, the gap between test loss and training loss of any hypothesis is upper bounded by some small $\epsilon$, that is, $L(h) - \hat L(h) \le \epsilon$, where the $\epsilon$ is generally a function that depends on $\delta$ and other aspects of the learning algorithm/model
+\end{mdframed}
+
+More rigorously, we would like to show statements of the following:
+\begin{align} 
+    \Pr\left[L(h) - \hat L(h) > \epsilon\right] \le 1 - \delta,
+\end{align}
+where the randomness is on the training data samples drawn from $\bP^{\star}$.
+
+Equipped with such a statement, we will then apply the statement to the empirical risk minimizer $\hat h_{\erm}$, since the result essentially holds for any $h \in \cH$, which also subsumes $\hat h_{\erm}$ as a special case.
+
+\subsection{Basic setup of neural networks (Lecture 1)}
+
+Consider the case of a basic one-layer network:
+\begin{align}\label{eq_xmap}
+    x \rightarrow \sum_{i=1}^m a_i \sigma(w_i^{\top} x + b_i), \text{ where }
+\end{align}
+\begin{itemize}
+    \item $\sigma$ is the nonlinear activation function. Typical choices of $\sigma$: ReLU $x\rightarrow\max(0, x)$, sigmoid $x \rightarrow \frac 1 {1 + \exp(-x)}$
+    
+    \item $Z = \set{\alpha = (a_i, w_i, b_i)}_{i=1}^m$ are trainable parameters of the network. By varying them we could define the function class $\cH$ as
+    \[ \cH = \set{f_{\alpha} : \forall \alpha \in Z} \]
+    
+    \item $\cH$ essentially represents a set of one-hidden-layer neural networks with $m$ neurons
+
+    \item We can define the weight matrix $W = [w_1, w_2, \dots, w_m]$, and the bias vector $b = [b_1, b_2, \dots, b_m]$. Thus, we may write map \eqref{eq_xmap} as $x\rightarrow a^{\top} \sigma(W x + b)$.
+\end{itemize}
+
+By extending the above setup, we may write a deep network as
+\begin{align}
+    f_{\alpha}(x) = \sigma_L\left( W_L \sigma_{L-1} \left( \cdots \sigma_2 \left(W_2 \sigma_1 \left( W_1 x + b_1 \right) + b_2 \right) \cdots \right) \right)
+\end{align}
+The depth of the network is given by $L$.
+The width is given by $\max(m_1, m_2, \dots, m_l)$, i.e., the layer with the most neurons in the layer.
+
+Motivating questions: \emph{How could we analyze the training and test losses of a deep network?} \emph{How well does a deep network generalize, and how does it depend on its depth and width?}
+\emph{How does this ability to learn and to generalize rely on the data distributions, and what is the role of optimization algorithms used to train the network?}
+
+\paragraph{Next lecture:}
+In the next lecture, we will wrap up this overview by giving a setup about how to rigorously model transfer learning, and reason about estimation procedures whose test data is different from the training data.
+Then, we will dive deeper into the uniform convergence framework.
+
+\subsection{Statistical transfer learning (Lecture 2)}
+
+An important learning paradigm that has emerged in the past few years is transfer learning---transferring the knowledge from one task to help solve another task.
+How could we develop a more rigorous statistical modeling of transfer learning?
+A better understanding of this question has applications in NLP and language modeling, CV, robotics, to name a few.
+
+\paragraph{Linear regression:}
+Perhaps the simplest modeling framework is to examine transfer learning in linear regression tasks.
+For example, we may consider the case of two linear regression tasks, one called the source task and the other called the target task.
+
+Suppose we have $n_1$ samples from the source task. We have $n_2$ samples from the target task. How could we use the samples from the source task to help estimate the target task?
+Concretely, let the samples of the source task be denoted by $(x^{(1)}_1, y^{(1)}_1), (x^{(1)}_2, y^{(1)}_2), \dots, (x^{(1)}_{n_1}, y^{(1)}_{n_1})$, where every $x^{(1)}_i$ is a $p$-dimensional vector and $y^{(1)}_i$ is a real-valued outcome.
+We shall assume that they follow a linear relation specified by an unknown parameter $\beta^{(1)} \in \real^p$:
+\begin{align}
+    y^{(1)}_i = {x^{(1)}_i}^{\top} \beta^{(1)} + \epsilon^{(1)}_i, \text{ for all } i = 1, 2, \dots, n_1
+\end{align}
+Similarly, we denote the samples of the target task as $(x^{(2)}_1, y^{(2)}_1), (x^{(2)}_2, y^{(2)}_2), \dots, (x^{(2)}_{n_2}, y^{(2)}_{n_2})$.
+In addition, they follow a linear relation specified by another unknown parameter $\beta^{(2)} \in \real^p$, which can be different from that of the source task:
+\begin{align}
+    y^{(2)}_i = {x^{(2)}_i}^{\top} \beta^{(2)} + \epsilon^{(2)}_i, \text{ for all } i = 1, 2, \dots, n_2
+\end{align}
+Now we can ask a few more concrete questions:
+\begin{itemize}
+    \item How does the difference between $\beta^{(1)}$ and $\beta^{(2)}$ affect transfer learning performance?
+
+    \item How does the difference between the feature vectors of source task and target task affect transfer learning?
+\end{itemize}
+More generally, we may say that the source task and the target task involve a distribution shift between their them. In the area of domain adaptation \citep{kouw2018introduction}:
+\begin{itemize}
+    \item Covariate shift refers to scenarios where both tasks follow the same model conditioned on the features (i.e., $\beta^{(1)} = \beta^{(2)}$), but they have different feature distributions.
+
+    \item Model shift refers to scenarios where the two tasks follow different models conditioned on the same features, that is $\beta^{(1)} \neq \beta^{(2)}$.
+\end{itemize}
+We may now ask, how does covariate shift and model shift affect transfer learning performance?
+
+\paragraph{Transfer learning estimator:}
+Typically, there are two strategies for transfer learning, one called hard transfer, where we hard-code the shared component across tasks, the other called soft transfer, where we use separate components for task, and encourage the separate components to be close to each other \citep{ruder2017overview}.
+
+In the context of linear regression, we can define an hard parameter sharing estimator as follows:
+\begin{align}
+    \hat L^{HPS}(\beta) = \frac 1 {n_1 + n_2} \left( \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} \beta - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right)
+\end{align}
+
+We may also elect to use a soft parameter sharing estimator instead:
+\begin{align}
+    \hat L^{SPS}(\beta, z) = \frac 1 {n_1 + n_2} \left(  \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} (\beta + z) - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right) + \lambda \bignorm{z}^2
+\end{align}
+Essentially, by adjusting $\lambda$, we can adjust the magnitude of $z$, which then determines how far (and how close) the source and target task models are.
+
+\paragraph{Optimality of the estimator:}
+The above estimation algorithms are based on the best practices of practitioner (see the surveys above).
+Suppose we analyze their performances. However, how can we know that there are no better estimators out there?
+How could we understand the fundamental limits of estimation and optimization procedures?
+These are often called \emph{lower bounds} on the performance of estimators, and it usually falls into the area of information theory \citep{duchi2016lecture}.
+In particular, we will touch on the framework of minimax lower bounds for transfer learning (though the scope of this is much broader than we'll cover in our lectures).
