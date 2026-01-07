@@ -1,35 +1,35 @@
 \section{Overview}
 
-\paragraph{Background.} Machine learning has been increased used in technology platforms and products, affecting our daily lives.%\footnote{ChatGPT reportedly has 300 million weekly active users: \href{https://www.cnbc.com/2024/12/04/openais-active-user-count-soars-to-300-million-people-per-week.html}{CNCB news, 2024}; Claude reportedly has 4.5 million monthly active users, \href{https://www.anthropic.com/customers/wrtn}{anthropic}.}
+\paragraph{Background.} Machine learning has been increased used in technology platforms and products, affecting our daily lives. %\footnote{ChatGPT reportedly has 300 million weekly active users: \href{https://www.cnbc.com/2024/12/04/openais-active-user-count-soars-to-300-million-people-per-week.html}{CNCB news, 2024}; Claude reportedly has 4.5 million monthly active users, \href{https://www.anthropic.com/customers/wrtn}{anthropic}.}
 Machine learning involves a collection of models, algorithms, and engineering frameworks:
 \begin{itemize}
-    \item Regression and classification: least squares estimation, logistic regression, LDA, bias-variance tradeoff, cross-validation.
-    \item Neural networks and deep learning: CNNs, backpropagation, foundation models, language modeling.
-    \item Unsupervised learning: dimension reduction (e.g., PCA), clustering, contrastive learning.
-    \item Causal machine learning: study the cause-and-effect with a powerful machine learning model.
-    \item Generative AI: diffusion models, multi-modal learning.
-    \item NumPy, Sklearn, PyTorch, TensorFlow, Hugging Face.
+    \item Regression and classification: least squares estimation, logistic regression, $\ell_1$/$\ell_2$-regularization, bias-variance tradeoff, cross-validation.
+    \item Neural networks and deep learning: convolutional neural networks, backpropagation, foundation models, language modeling.
+    \item Unsupervised learning: dimension reduction such as principal component analysis, clustering, contrastive learning.
+    \item Causal machine learning: study the cause-and-effect to estimate the counterfactual.
+    \item Reinforcement learning and sequential decision-making: robotics, reinforcement learning from human feedback.
+    \item Generative AI: large language models, diffusion models, multi-modal data.
+    \item Machine learning libraries: numpy, sklearn, pytorch, tensorflow, huggingface$\dots$
 \end{itemize}
 
 \subsection{What is this course about? (Lecture 1)}
 
-This course aims to uncover the common \hl{mathematical and statistical principles} underlying the diverse array of methods.
+This course aims to uncover the common \hl{mathematical and statistical principles} underlying the diverse array of machine learning models and algorithms.
 This class is mostly about the theoretical analysis of learning algorithms and models. Many of the techniques introduced in this course---which involve a beautiful blend of probability, linear algebra, and optimization---are separate fields in their respective discipline with independent interests outside of machine learning.
 For example, we will study the supreme of a complex random variable corresponding to the outcome of a learning algorithm applied to train a neural network model.
 We will show how to design estimation algorithms when we are working under distribution shifts between training and test datasets.
 
-From a practical point of view, studying the underlying working mechanisms of a learning algorithm can deepen our understanding of how things work.
-For example, suppose we want to build a classifier to predict the topic of a document (e.g., sports, politics, technology, etc).
-We train a logistic regression model with word frequencies as features and obtain a training accuracy of 90\% on 1000 training documents and a test accuracy of 85\% on 1000 test documents.
-\begin{itemize}
-    \item How reliable are these numbers? If we resample the training data, can we expect the same results?
-    \item How much will the training and test accuracies increase if we double the number of training documents?
-    \item What if we increase the number of features (e.g., use tri-occurrence of words)? Does regularization help?
-\end{itemize}
+From a practical point of view, studying the underlying working mechanisms of a learning algorithm can deepen our understanding of how machine learning models work.
+For example, suppose we want to design a neural network classifier to predict the sentiment of a document.
+We train a regression model with word frequencies as features and obtain a training accuracy of 100\% on 1000 training documents and a test accuracy of 85\% on 1000 test documents.
+How can we reduce the gap between the training accuracy and the test accuracy?
+Further, what happens if the word frequencies between the training corpus and the test corpus are different?
+It is possible to answer these questions from a engineering perspective; instead, this course will mostly focus on the mathematical analysis underlying these procedures, although we will provide computational examples from time to time to help you understand the theoretical concepts.
 
 There is obviously a clear gap between theoretical analysis and the practical performance of an algorithm.
-For instance, theoretical analysis is usually conducted under strong assumptions, which limit the implications one could draw from the theoretical results.
-The goal, instead, is to build a deeper understanding through theoretical analysis.
+For instance, theoretical analysis is usually conducted under standard technical assumptions, which are often made to simplify the theoretical analysis.
+The goal, instead, is to \emph{build a deeper understanding of the underlying keep concepts through mathematical modeling and theoretical analysis}.
+We will see if we succeed in accomplishing this objective by the end of this semester.
 
 The course materials are divided into three parts: \emph{fundamental concepts of statistical learning theory} (January), \emph{generalization and optimization of neural networks and deep learning} (February), \emph{statistical modeling of emerging learning paradigms} (March).\footnote{April will be dedicated to course project presentations.}
 
@@ -37,7 +37,7 @@ The course materials are divided into three parts: \emph{fundamental concepts of
 
 Central questions: \emph{Does minimizing training error lead to low test error?}
 \emph{How does the generalization ability depend on the model architecture and the training algorithm?}
-It turns out that answering these questions is highly non-trivial as it also depends on the underlying data distribution.\footnote{A recent empirical study highlights empirical scaling laws as key metrics for training large language models: \href{https://arxiv.org/abs/2001.08361}{paper} (see also \href{https://openai.com/index/scaling-laws-for-neural-language-models/}{openai} page).}
+It turns out that answering these questions is highly non-trivial as it also depends on the underlying data distribution.%\footnote{A recent empirical study highlights empirical scaling laws as key metrics for training large language models: \href{https://arxiv.org/abs/2001.08361}{paper} (see also \href{https://openai.com/index/scaling-laws-for-neural-language-models/}{openai} page).}
 
 To formally study these questions, let us first describe the mathematical setup:
 \begin{itemize}
@@ -64,7 +64,9 @@ The test loss (or expected risk) of a hypothesis $h\in\cH$ is then given by
 \end{align}
 
 \begin{example}[Linear regression]
-    
+    To make the above setup more concrete, perhaps the best example would be linear regression.
+    There are many standard texts on this topic, see, e.g., \cite{wainwright2019high}.
+    In a standard parametric regression setup, we have $n$ samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$.
 \end{example}
 
 
