@@ -1,37 +1,37 @@
 \section{Overview}
 
-\paragraph{Background.} Machine learning has been increased used in technology platforms and products, affecting our daily lives. %\footnote{ChatGPT reportedly has 300 million weekly active users: \href{https://www.cnbc.com/2024/12/04/openais-active-user-count-soars-to-300-million-people-per-week.html}{CNCB news, 2024}; Claude reportedly has 4.5 million monthly active users, \href{https://www.anthropic.com/customers/wrtn}{anthropic}.}
+\paragraph{Background.} Machine learning has been increasingly used in technology platforms and products, affecting our daily lives. %\footnote{ChatGPT reportedly has 300 million weekly active users: \href{https://www.cnbc.com/2024/12/04/openais-active-user-count-soars-to-300-million-people-per-week.html}{CNCB news, 2024}; Claude reportedly has 4.5 million monthly active users, \href{https://www.anthropic.com/customers/wrtn}{anthropic}.}
 Machine learning involves a collection of models, algorithms, and engineering frameworks:
 \begin{itemize}
     \item Regression and classification: least squares estimation, logistic regression, $\ell_1$/$\ell_2$-regularization, bias-variance tradeoff, cross-validation.
     \item Neural networks and deep learning: convolutional neural networks, backpropagation, foundation models, language modeling.
     \item Unsupervised learning: dimension reduction such as principal component analysis, clustering, contrastive learning.
-    \item Causal machine learning: study the cause-and-effect to estimate the counterfactual.
     \item Reinforcement learning and sequential decision-making: robotics, reinforcement learning from human feedback.
     \item Generative AI: large language models, diffusion models, multi-modal data.
+    \item Causal machine learning: study the cause-and-effect to estimate the counterfactual.
     \item Machine learning libraries: numpy, sklearn, pytorch, tensorflow, huggingface$\dots$
 \end{itemize}
 
 \subsection{What is this course about? (Lecture 1)}
 
 This course aims to uncover the common \hl{mathematical and statistical principles} underlying the diverse array of machine learning models and algorithms.
-This class is mostly about the theoretical analysis of learning algorithms and models. Many of the techniques introduced in this course---which involve a beautiful blend of probability, linear algebra, and optimization---are separate fields in their respective discipline with independent interests outside of machine learning.
-For example, we will study the supreme of a complex random variable corresponding to the outcome of a learning algorithm applied to train a neural network model.
-We will show how to design estimation algorithms when we are working under distribution shifts between training and test datasets.
+This class primarily focuses on the theoretical analysis of learning algorithms and models. Many of the techniques introduced in this course---which involve a beautiful blend of probability, linear algebra, and optimization---are separate fields in their respective discipline with independent interests outside of machine learning.
+For example, we will study the supremum of a complex random variable corresponding to the outcome of a learning algorithm applied to train a neural network model.
+We will show how to design estimation algorithms when working under distribution shifts between the training and test datasets.
 
 From a practical point of view, studying the underlying working mechanisms of a learning algorithm can deepen our understanding of how machine learning models work.
 For example, suppose we want to design a neural network classifier to predict the sentiment of a document.
-We train a regression model with word frequencies as features and obtain a training accuracy of 100\% on 1000 training documents and a test accuracy of 85\% on 1000 test documents.
-How can we reduce the gap between the training accuracy and the test accuracy?
+We train a regression model using word frequencies as features and achieve 100\% training accuracy on 1000 training documents and 85\% test accuracy on 1000 test documents.
+How can we reduce the gap between training and test accuracy?
 Further, what happens if the word frequencies between the training corpus and the test corpus are different?
-It is possible to answer these questions from a engineering perspective; instead, this course will mostly focus on the mathematical analysis underlying these procedures, although we will provide computational examples from time to time to help you understand the theoretical concepts.
+It is possible to answer these questions from an engineering perspective; instead, this course will mostly focus on the mathematical analysis underlying these procedures, although we will provide computational examples from time to time to help you understand the theoretical concepts.
 
-There is obviously a clear gap between theoretical analysis and the practical performance of an algorithm.
-For instance, theoretical analysis is usually conducted under standard technical assumptions, which are often made to simplify the theoretical analysis.
-The goal, instead, is to \emph{build a deeper understanding of the underlying keep concepts through mathematical modeling and theoretical analysis}.
+There is a clear gap between theoretical analysis and an algorithm's practical performance.
+For instance, theoretical analysis is usually conducted under standard technical assumptions that are often made to simplify the analysis.
+The goal, instead, is to \emph{build a deeper understanding of the underlying key concepts through mathematical modeling and theoretical analysis}.
 We will see if we succeed in accomplishing this objective by the end of this semester.
 
-The course materials are divided into three parts: \emph{fundamental concepts of statistical learning theory} (January), \emph{generalization and optimization of neural networks and deep learning} (February), \emph{statistical modeling of emerging learning paradigms} (March).\footnote{April will be dedicated to course project presentations.}
+The course materials are divided into three parts: \emph{fundamental concepts of statistical learning theory} (January), \emph{generalization and optimization of neural networks and deep learning} (February), and \emph{statistical modeling of emerging learning paradigms} (March).\footnote{April will be dedicated to course project presentations.}
 
 \subsection{Supervised prediction (Lecture 1)}
 
@@ -65,33 +65,54 @@ The test loss (or expected risk) of a hypothesis $h\in\cH$ is then given by
 
 \begin{example}[Linear regression]
     To make the above setup more concrete, perhaps the best example would be linear regression.
-    There are many standard texts on this topic, see, e.g., \cite{wainwright2019high}.
-    In a standard parametric regression setup, we have $n$ samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$.
+    There are many standard texts on this topic; see, e.g., \cite{wainwright2019high}.
+    In a standard parametric regression setup, we have $n$ samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$, where every $x_i \in \real^p$ is a $p$-dimensional feature vector drawn from some unknown distribution $\cD$, and $y_i \in \real$, for every $i = 1, 2, \dots, n$.
+    In addition, suppose that there exists an unknown $\beta \in \real^p$ such that
+    \begin{align}
+        y_i = x_i^{\top} \beta + \varepsilon_i, \text{ for every } i = 1, 2, \dots, n,
+    \end{align}
+    where $x_i^{\top} \beta = \sum_{j = 1}^p x_{i, j} \beta_j$, and $\varepsilon_i \sim \cN(0, \sigma^2)$ is a noise random variable with mean zero and variance $\sigma^2$.
+
+    Given $n$ samples, the goal of this problem is to learn a linear model parameterized by $\hat \beta$ that achieves the lowest mean-squared error (MSE) on an unseen sample.
 \end{example}
 
-
-\paragraph{Remarks:}
-\begin{itemize}
-    \item We have assumed the training and test distributions are the same. While this assumption does not hold exactly in practice, morally speaking, the training and test distributions have to be related.
+\begin{remark}
+    We have assumed the training and test distributions are the same. While this assumption does not hold exactly in practice, morally, the training and test distributions must be related.
     
-    \item Formulating what it means to be related and not related, and dealing with the discrepancy between training and test data is studied under the area of \emph{domain adaptation} or \emph{transfer learning}.
+    Formulating what it means to be related and not related, and addressing the discrepancy between training and test data, are studied in the area of \emph{domain adaptation} or \emph{transfer learning}.
 
-    \item The independence assumption, which also does not hold exactly in practice, ensures that more training data gives us more information.
-\end{itemize}
+    The independence assumption, which also does not hold exactly in practice, ensures that more training data gives us more information.
+\end{remark}
 
-\paragraph{Empirical risk minimization:} Consider minimizing the training loss
+\subsubsection{Empirical risk minimization}
+
+Consider minimizing the training loss
 \begin{align}
     \hat h_{\erm} \leftarrow \argmin_{h \in \cH} \hat L(h).
 \end{align}
 What can say that the relationship between $\hat L(\hat h_{\erm})$ and $L(\hat h_{\erm})$?
 A key challenge is that the randomness of $\hat h_{\erm}$ now depends on $\hat L$. Thus, $\hat L(\hat h_{\erm})$ involves a correlation between the training data samples and the minimizing hypothesis.
-A central aspect we will tackle in the first part of the course is to develop the machinery to tackle this challenge.
+A central aspect we will tackle in the first part of the course is developing the machinery to address this challenge.
 
 \begin{example}[Pretraining and fine-tuning]
+    An emerging learning paradigm that has emerged over the past few years follows a two-stage procedure involving pretraining on a large amount of unlabeled data, followed by fine-tuning on a small amount of labeled data.
 
+    The pretraining stage usually follows some masked prediction procedure on unlabeled data.
+    The supervised fine-tuning (SFT) procedure can be formulated with the above ERM setup.
+    \begin{itemize}
+        \item Suppose we have some model like a neural network, $f_{W_0}$, parameterized by some initialization $W_0$.
+
+        \item There is a small amount of training dataset, $S$, from which we compute the training loss $\hat L(f_{W_0})$.
+
+        \item SFT corresponds to minimizing $\hat L(f_{W_0})$, usually via a stochastic gradient optimization algorithm.
+
+        \item An important consideration in SFT is overfitting, since the model is pretrained on a large amount of unlabeled data. The size of the model is usually much larger than the size of the training dataset $S$.
+     \end{itemize}
 \end{example}
 
-\paragraph{Uniform convergence:} We show provide statements of the following flavor
+\subsubsection{Uniform convergence and generalization}
+
+In the first part of this course, we will show various statements of the following flavor
 
 \begin{mdframed}[
     roundcorner=10pt,
@@ -101,10 +122,11 @@ A central aspect we will tackle in the first part of the course is to develop th
 \end{mdframed}
 
 More rigorously, we would like to show statements of the following:
-\begin{align} 
-    \Pr\left[L(h) - \hat L(h) > \epsilon\right] \le 1 - \delta,
+\begin{align}
+    \Pr\left[\underbrace{L(h) - \hat L(h)}_{\text{Generalization gap}} > \epsilon\right] \le 1 - \delta,
 \end{align}
 where the randomness is on the training data samples drawn from $\bP^{\star}$.
+This statement essentially quantifies the \hl{generalization gap} between the training and test losses of the machine learning model.
 
 Equipped with such a statement, we will then apply the statement to the empirical risk minimizer $\hat h_{\erm}$, since the result essentially holds for any $h \in \cH$, which also subsumes $\hat h_{\erm}$ as a special case.
 
@@ -117,7 +139,7 @@ Consider the case of a basic one-layer network:
 \begin{itemize}
     \item $\sigma$ is the nonlinear activation function. Typical choices of $\sigma$: ReLU $x\rightarrow\max(0, x)$, sigmoid $x \rightarrow \frac 1 {1 + \exp(-x)}$. Key property: Lipschitz-continuity: A function $f: \real \rightarrow \real$ is said to be $C$-Lipschitz-continuous if the following is true: \[ \bigabs{f(x) - f(y)} \le C \cdot \bigabs{x - y}. \]
     
-    \item $Z = \set{\alpha = (a_i, w_i, b_i)}_{i=1}^m$ are trainable parameters of the network. By varying them we could define the function class $\cH$ as
+    \item $Z = \set{\alpha = (a_i, w_i, b_i)}_{i=1}^m$ are trainable parameters of the network. By varying them, we could define the function class $\cH$ as
     \[ \cH = \set{f_{\alpha} : \forall \alpha \in Z}. \]
     
     \item $\cH$ essentially represents a set of one-hidden-layer neural networks with $m$ neurons.
@@ -135,12 +157,83 @@ The width is given by $\max(m_1, m_2, \dots, m_l)$, i.e., the layer with the mos
 Motivating questions: \emph{How could we analyze the training and test losses of a deep network?} \emph{How well does a deep network generalize, and how does it depend on its depth and width?}
 \emph{How does this ability to learn and to generalize rely on the data distributions, and what is the role of optimization algorithms used to train the network?}
 
-\paragraph{Language models:} A language model specifies a conditional probability distribution $\Pr_{\theta}(\cdot \mid P)$, given a prompt sequence $P$.
+\paragraph{Language models:} A language model specifies a conditional probability distribution $\Pr_{\theta}(\cdot \mid P)$, given a prompt sequence $P$, produces the next-token according to underlying probability masses.
 
 \begin{example}[In-context learning]
+    To illustrate the concept of a language model, let us consider a few-shot meta-learning problem \citep{garg2022can}.
+    In this problem, each prompt $P_{\theta_i}$ involves a sequence of examples or demonstrations $(x_1, y_1, x_2, y_2, \dots, x_{t-1}, y_{t-1}, x_t)$, ended with a query example $x_t$.
+    The goal is to predict the correct output $y_t$ corresponding to $x_t$.
 
+    To make this more concrete, suppose that $y_j = \theta_i^{\top} x_j$, for every $j = 1, 2, \dots, t-1$.
+    The desired output $y_t = \theta_i^{\top} x_j$.
+    \begin{itemize}
+        \item At training time, the model sees a sequence of prompt-answer pairs $(P_{\theta_i}, y_t)$.
+
+        \item At test time, the model sees a new prompt $P_\theta$ parameterized by some unknown $\theta$. The model is asked to first ``solve'' the linear regression from the in-context examples given in $P_\theta$, and then use the ``learned'' regression model to output the correct answer corresponding to the query.
+    \end{itemize}
 \end{example}
 
 \paragraph{Next lecture:}
-In the next lecture, we will wrap up this overview by giving a setup about how to rigorously model several emerging learning paradigms.
-Then, we will dive deeper into the uniform convergence framework.
+In the next lecture, we will wrap up this overview by providing a setup for rigorously modeling several emerging learning paradigms.
+We will then dive deeper into the uniform convergence framework.
+
+
+\iffalse
+
+\subsection{Statistical transfer learning (Lecture 2)}
+
+An important learning paradigm that has emerged in the past few years is transfer learning---transferring the knowledge from one task to help solve another task.
+How could we develop a more rigorous statistical modeling of transfer learning?
+A better understanding of this question has applications in NLP and language modeling, CV, robotics, to name a few.
+
+\paragraph{Linear regression:}
+Perhaps the simplest modeling framework is to examine transfer learning in linear regression tasks.
+For example, we may consider the case of two linear regression tasks, one called the source task and the other called the target task.
+
+Suppose we have $n_1$ samples from the source task. We have $n_2$ samples from the target task. How could we use the samples from the source task to help estimate the target task?
+Concretely, let the samples of the source task be denoted by $(x^{(1)}_1, y^{(1)}_1), (x^{(1)}_2, y^{(1)}_2), \dots, (x^{(1)}_{n_1}, y^{(1)}_{n_1})$, where every $x^{(1)}_i$ is a $p$-dimensional vector and $y^{(1)}_i$ is a real-valued outcome.
+We shall assume that they follow a linear relation specified by an unknown parameter $\beta^{(1)} \in \real^p$:
+\begin{align}
+    y^{(1)}_i = {x^{(1)}_i}^{\top} \beta^{(1)} + \epsilon^{(1)}_i, \text{ for all } i = 1, 2, \dots, n_1
+\end{align}
+Similarly, we denote the samples of the target task as $(x^{(2)}_1, y^{(2)}_1), (x^{(2)}_2, y^{(2)}_2), \dots, (x^{(2)}_{n_2}, y^{(2)}_{n_2})$.
+In addition, they follow a linear relation specified by another unknown parameter $\beta^{(2)} \in \real^p$, which can be different from that of the source task:
+\begin{align}
+    y^{(2)}_i = {x^{(2)}_i}^{\top} \beta^{(2)} + \epsilon^{(2)}_i, \text{ for all } i = 1, 2, \dots, n_2
+\end{align}
+Now we can ask a few more concrete questions:
+\begin{itemize}
+    \item How does the difference between $\beta^{(1)}$ and $\beta^{(2)}$ affect transfer learning performance?
+
+    \item How does the difference between the feature vectors of source task and target task affect transfer learning?
+\end{itemize}
+More generally, we may say that the source task and the target task involve a distribution shift between their them. In the area of domain adaptation \citep{kouw2018introduction}:
+\begin{itemize}
+    \item Covariate shift refers to scenarios where both tasks follow the same model conditioned on the features (i.e., $\beta^{(1)} = \beta^{(2)}$), but they have different feature distributions.
+
+    \item Model shift refers to scenarios where the two tasks follow different models conditioned on the same features, that is $\beta^{(1)} \neq \beta^{(2)}$.
+\end{itemize}
+We may now ask, how does covariate shift and model shift affect transfer learning performance?
+
+\paragraph{Transfer learning estimator:}
+Typically, there are two strategies for transfer learning, one called hard transfer, where we hard-code the shared component across tasks, the other called soft transfer, where we use separate components for task, and encourage the separate components to be close to each other \citep{ruder2017overview}.
+
+In the context of linear regression, we can define an hard parameter sharing estimator as follows:
+\begin{align}
+    \hat L^{HPS}(\beta) = \frac 1 {n_1 + n_2} \left( \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} \beta - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right)
+\end{align}
+
+We may also elect to use a soft parameter sharing estimator instead:
+\begin{align}
+    \hat L^{SPS}(\beta, z) = \frac 1 {n_1 + n_2} \left(  \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} (\beta + z) - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right) + \lambda \bignorm{z}^2
+\end{align}
+Essentially, by adjusting $\lambda$, we can adjust the magnitude of $z$, which then determines how far (and how close) the source and target task models are.
+
+\paragraph{Optimality of the estimator:}
+The above estimation algorithms are based on the best practices of practitioner (see the surveys above).
+Suppose we analyze their performances. However, how can we know that there are no better estimators out there?
+How could we understand the fundamental limits of estimation and optimization procedures?
+These are often called \emph{lower bounds} on the performance of estimators, and it usually falls into the area of information theory \citep{duchi2016lecture}.
+In particular, we will touch on the framework of minimax lower bounds for transfer learning (though the scope of this is much broader than we'll cover in our lectures).
+
+\fi
