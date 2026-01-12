@@ -25,7 +25,7 @@ A particularly fruitful framework for analyzing learning algorithms is the proba
 \end{mdframed}
 
 \paragraph{Remark:} Notice that the running time complexity places a bound on the sample complexity as well. We will assume that the empirical risk minimizer can be computed efficiently.
-For instance, think of a large neural network whose training loss can be efficiently reduced to reach zero using stochastic gradient descent
+For instance, think of a large neural network whose training loss can be efficiently reduced to reach zero using stochastic gradient descent.
 
 \subsection{Learning a realizable, finite hypothesis class (Lecture 2)}
 
@@ -46,42 +46,38 @@ Under these assumptions, we shall prove the following property of ERM:
 \end{mdframed}
 
 In particular, to reduce the expected risk below $\epsilon$, we want $n \ge \frac {\log(\abs{\cH}) + \log(\delta^{-1})} {\epsilon}$.
+
 Remarks:
 \begin{itemize}
-    \item The excess risk only grows logarithmically with the size of the hypothesis class, so we affort to use an exponentially large hypothesis space.
+    \item The excess risk only grows logarithmically with the size of the hypothesis class, so we can afford to use an exponentially large hypothesis space.
 
     \item The result is independent of $\bP^{\star}$. This is nice because typically we don’t know the true distribution.
 \end{itemize}
 
 \begin{proof}
     We’d like to upper bound the probability of the bad event that $L(\hat h_{\erm}) > \epsilon$:
-    \begin{enumerate}[label=\alph*)]
-        \item Let $B \subseteq \cH$ be the set of bad hypotheses: $\set{B \in \cH : L(h) > \epsilon}$
+    Let $B \subseteq \cH$ be the set of bad hypotheses: $\set{B \in \cH : L(h) > \epsilon}$
 
-        \item We can rewrite our goal as upper bounding the probability of selecting a bad hypothesis $\Pr[L(\hat h_{\erm}) > \epsilon] = \Pr[\hat h_{\erm} \in B]$
+    We can rewrite our goal as upper bounding the probability of selecting a bad hypothesis $\Pr[L(\hat h_{\erm}) > \epsilon] = \Pr[\hat h_{\erm} \in B]$.
+    Recall the empirical risk of ERM is always zero because at least $\hat L(h^{\star}) = 0$.
+    Hence for any “bad” hypothesis in $B$, they must have zero empirical risk
+    \[ \Pr[\hat h_{\erm} \in B] \le \Pr[\exists h \in B : \hat L(h) = 0] \]
 
-        \item Recall the empirical risk of ERM is always zero because at least $\hat L(h^{\star}) = 0$
+    Now we shall deal with the above in two steps.
+    First, bound $\Pr[ \hat L(h) = 0 ]$ for a fixed $h \in B$.
+    Notice that on a random example from $\cP^{\star}$, the accuracy of $h$ should be $1 - L(h)$.
+    Since the training data is drawn IID from $\cP^{\star}$, and $L(h) \ge \epsilon$ for any $h \in B$, we get that
+    \[ \Pr[ \hat L(h) = 0 ] \le (1 - L(h))^{n} \le (1 - \epsilon)^n \le \exp^{-\epsilon n},  \]
+    where we use the fact that $1 - x \le \exp(-x)$.
 
-        \item Hence for any “bad” hypothesis in $B$, they must have zero empirical risk
-        \[ \Pr[\hat h_{\erm} \in B] \le \Pr[\exists h \in B : \hat L(h) = 0] \]
-
-        \item Now we shall deal with the above in two steps.
-        First, bound $\Pr[ \hat L(h) = 0 ]$ for a fixed $h \in B$.
-
-        Notice that on a random example from $\cP^{\star}$, the accuracy of $h$ should be $1 - L(h)$.
-        Since the training data is drawn IID from $\cP^{\star}$, and $L(h) \ge \epsilon$ for any $h \in B$, we get that
-        \[ \Pr[ \hat L(h) = 0 ] \le (1 - L(h))^{n} \le (1 - \epsilon)^n \le \exp^{-\epsilon n},  \]
-        where we use the fact that $1 - x \le \exp(-x)$.
-
-        \item Second, we want the above to hold simultaneously for all $h \in B$.
-        We can apply the union bound to bound the probability of all bad events:
-        \begin{align*} 
-            \Pr[\exists h \in B : \hat L(h) = 0] &\le \sum_{h \in B} \Pr[ \hat L(h) = 0 ] \\
-            & \le \abs{B} \exp(- \epsilon n) \\
-            & \le \abs{\cH} \exp( - \epsilon n)
-        \end{align*}
-        By setting the above at most $\delta$, we conclude that $\epsilon$ must be at least $\frac {\log(\abs{\cH}) + \log(\delta^{-1}) } n$.
-    \end{enumerate}
+    Second, we want the above to hold simultaneously for all $h \in B$.
+    We can apply the union bound to bound the probability of all bad events:
+    \begin{align*} 
+        \Pr[\exists h \in B : \hat L(h) = 0] &\le \sum_{h \in B} \Pr[ \hat L(h) = 0 ] \\
+        & \le \abs{B} \exp(- \epsilon n) \\
+        & \le \abs{\cH} \exp( - \epsilon n)
+    \end{align*}
+    By setting the above at most $\delta$, we conclude that $\epsilon$ must be at least $\frac {\log(\abs{\cH}) + \log(\delta^{-1}) } n$.
     This concludes the proof for learning finite, realizable hypothesis spaces.
 \end{proof}
 
@@ -89,16 +85,20 @@ Remarks:
 The proof of this result is elementary but illustrates an important pattern that will recur in more complex scenarios.
 We are interested in the expected risk, but only have access to empirical risk to choose the ERM:
 \begin{itemize}
-    \item Step 1 (convergence): for a fixed $h$, show that $\hat L(h)$ is close to $L(h)$ with high probability
-    \item Step 2 (uniform convergence): show that the above holds simultaneously for all hypotheses $h \in \cH$
+    \item Step 1 (convergence): for a fixed $h$, show that $\hat L(h)$ is close to $L(h)$ with high probability.
+    \item Step 2 (uniform convergence): show that the above holds simultaneously for all hypotheses $h \in \cH$.
 \end{itemize}
 However, the assumptions are restrictive.
 There exists a perfect hypothesis (realizability). What happens when the problem is not realizable? To answer this, we introduce the tools of concentration estimates.
 
 Second, the hypothesis class is finite. What happens when the number of hypotheses is infinite?
-To answer this, we need better ways of measuring the ``size'' of a set -- leading to Rademacher complexity, VC, PAC-Bayes, etc.
+To answer this, we need better ways of measuring the ``size'' of a set -- leading to Rademacher complexity, VC dimension, and PAC-Bayes bounds (to name a few).
 
+\paragraph{Next lecture:}
+In the next lecture, we will look further into uniform convergence bounds, ultimately leading to the \emph{Rademacher complexity} framework.
+%We will then dive deeper into the uniform convergence framework.
 
+\iffalse
 \subsection{Using uniform convergence to reason about generalization (Lecture 2)}
 
 We now give a high-level picture of the logic behind how we can use uniform convergence to reason about generalization (in the context of ERM).
@@ -907,3 +907,5 @@ We apply this expansion to the Rademacher complexity
 Taking the supremum over $\Phi$ means that we’ll maximize the path norm above!
 Hence, after switching the order of the sum, we can get
 \[ R_n(\cH) \le B \cdot \ex{\max_{1\le j\le m} \bigabs{\frac 1 n \sum_{i=1}^n \sigma_i \phi(\bar u_j^{\top} x_i)}} \le 2B \sqrt{\frac 1 n} \]
+
+\fi
