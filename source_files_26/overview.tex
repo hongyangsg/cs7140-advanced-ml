@@ -139,7 +139,7 @@ Consider the case of a basic one-layer network:
 \begin{itemize}
     \item $\sigma$ is the nonlinear activation function. Typical choices of $\sigma$: ReLU $x\rightarrow\max(0, x)$, sigmoid $x \rightarrow \frac 1 {1 + \exp(-x)}$. Key property: Lipschitz-continuity: A function $f: \real \rightarrow \real$ is said to be \emph{$C$-Lipschitz-continuous} if the following is true: \[ \bigabs{f(x) - f(y)} \le C \cdot \bigabs{x - y}. \]
     
-    \item $Z = \set{\alpha = (a_i, w_i, b_i)}_{i=1}^m$ are trainable parameters of the network. By varying them, we could define the function class $\cH$ as
+    \item $Z = \set{\alpha = (a_i, w_i, b_i)}_{i=1}^m$ are trainable parameters of the network. By varying $\alpha$, we define the function class $\cH$ as
     \[ \cH = \set{f_{\alpha} : \forall \alpha \in Z}. \]
     
     \item $\cH$ essentially represents a set of one-hidden-layer neural networks with $m$ neurons.
@@ -149,8 +149,9 @@ Consider the case of a basic one-layer network:
 
 By extending the above setup, we may write a deep network as
 \begin{align}
-    f_{\alpha}(x) = \sigma_L\left( W_L \sigma_{L-1} \left( \cdots \sigma_2 \left(W_2 \sigma_1 \left( W_1 x + b_1 \right) + b_2 \right) \cdots \right) \right)
+    f_{\alpha}(x) = \sigma_L\left( W_L \sigma_{L-1} \left( \cdots \sigma_2 \left(W_2 \sigma_1 \left( W_1 x + b_1 \right) + b_2 \right) \cdots \right) \right),
 \end{align}
+where $\alpha$ now encodes all the parameters of the network.
 The depth of the network is given by $L$.
 The width is given by $\max(m_1, m_2, \dots, m_l)$, i.e., the layer with the most neurons in the layer.
 
@@ -194,15 +195,16 @@ Similarly, we denote the samples of the target task as $(x^{(2)}_1, y^{(2)}_1), 
 
 Now we can ask a few more concrete questions:
 \begin{itemize}
-    \item How does the difference between $\beta^{(1)}$ and $\beta^{(2)}$ affect transfer learning performance?
+    \item How does the difference between the $x \rightarrow y$ mappings affect transfer learning performance?
 
-    \item How does the difference between the feature vectors of source task and target task affect transfer learning?
+    \item How does the covariance between the feature vectors of source and target tasks affect transfer learning?
 \end{itemize}
 More generally, we may say that the source task and the target task involve a distribution shift between their them. In the area of domain adaptation \citep{kouw2018introduction}:
 \begin{itemize}
-    \item Covariate shift refers to scenarios where both tasks follow the same model conditioned on the features (i.e., $\beta^{(1)} = \beta^{(2)}$), but they have different feature distributions.
+    \item Covariate shift refers to scenarios where both tasks follow the same model conditioned on the features, but they have different feature distributions.
+    %  (i.e., $\beta^{(1)} = \beta^{(2)}$)
 
-    \item Model shift refers to scenarios where the two tasks follow different models conditioned on the same features, that is $\beta^{(1)} \neq \beta^{(2)}$.
+    \item Model shift refers to scenarios where the two tasks follow different models conditioned on the same features. % , that is $\beta^{(1)} \neq \beta^{(2)}$
 \end{itemize}
 We may now ask, how does covariate shift and model shift affect transfer learning performance?
 
@@ -210,19 +212,6 @@ We may now ask, how does covariate shift and model shift affect transfer learnin
 
 Typically, there are two strategies for transfer learning, one called hard transfer, where we hard-code the shared component across tasks, the other called soft transfer, where we use separate components for task, and encourage the separate components to be close to each other \citep{ruder2017overview,dhifallah2021phase}.
 
-In the context of linear regression, we can define an hard parameter sharing estimator as follows:
-\begin{align}
-    \hat L^{\text{HPS}}(\beta) = \frac 1 {n_1 + n_2} \left( \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} \beta - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right)
-\end{align}
-
-We may also elect to use a soft parameter sharing estimator instead:
-\begin{align}
-    \hat L^{\text{SPS}}(\beta, z) = \frac 1 {n_1 + n_2} \left(  \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} (\beta + z) - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right) + \lambda \bignorm{z}^2
-\end{align}
-Essentially, by adjusting $\lambda$, we can adjust the magnitude of $z$, which then determines how far (and how close) the source and target task models are.
-
-A natural baseline is when we do not use the source task data at all.
-That is, perform least squares regression using target task data alone.
 
 \begin{figure}[t!]
     \centering
@@ -251,6 +240,21 @@ That is, perform least squares regression using target task data alone.
     \end{align}
     where $\epsilon_i^{(2)}$ is a white noise with mean zero and variance $\sigma^2_2$.
 
+    In the context of linear regression, we can define an hard parameter sharing estimator as follows:
+    \begin{align}
+        \hat L^{\textup{HPS}}(\beta) = \frac 1 {n_1 + n_2} \left( \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} \beta - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right)
+    \end{align}
+
+    We may also elect to use a soft parameter sharing estimator instead:
+    \begin{align}
+        \hat L^{\textup{SPS}}(\beta, z) = \frac 1 {n_1 + n_2} \left(  \sum_{i=1}^{n_1} \left( {x^{(1)}_i}^{\top} (\beta + z) - y^{(1)}_i \right)^2 + \sum_{j = 1}^{n_2} \left( {x^{(2)}_j}^{\top} \beta - y^{(2)}_j \right)^2 \right) + \lambda \bignorm{z}^2
+    \end{align}
+    Essentially, by adjusting $\lambda$, we can adjust the magnitude of $z$, which then determines how far (and how close) the source and target task models are.
+    
+    A natural baseline is when we do not use the source task data at all.
+    That is, perform least squares regression using target task data alone.
+    
+    
     In Figure \ref{fig:illustrate_ms}, we illustrate the effects incurred from model shifts and covariate shifts in transfer learning linear regression, comparing between HPS and OLS.
     In particular, we capture model shift as the distance error between $\beta^{(1)}$ and $\beta^{(2)}$, and we capture covariate shift as the difference in the population covariance matrix between task one and task two.
     To generate the condition matrix, we use a rank-$r$ matrix whose trace is equal to $p$, and set its nonzero eigenvalues as $p / r$.
