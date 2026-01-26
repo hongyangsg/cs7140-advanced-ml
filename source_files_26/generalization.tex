@@ -1,4 +1,4 @@
-\section{Uniform convergence and generalization}
+\section{Generalization theory for supervised prediction}
 
 Recall that we have introduced the empirical loss and expected loss of a hypothesis (denoted by $L(h)$ and $\hat L(h)$) for some $h$ in a hypothesis class $\cH$.
 Suppose we minimize the empirical risk to get $\hat h_{\erm}$. Two questions:
@@ -139,7 +139,7 @@ They are one of the most basic tools for studying supervised learning algorithms
 Let $X_1, X_2, \dots, X_n$ be independent and identically distributed random variables with mean $\mu = \ex{X_i}$, for all $i = 1, 2, \dots, n$.
 Define the empirical mean as \[ \hat \mu_n = \frac 1 n \sum_{i=1}^n X_i \]
 How does $\hat \mu_n - \mu$ behave?
-Three types of statements:
+There are at least three types of statements one could make:
 \begin{itemize}
     \item \hl{Consistency:} by law of large numbers, $\hat \mu_n - \mu \rightarrow 0$.
 
@@ -205,14 +205,16 @@ The Hoeffding's inequality is a very powerful result when we work with the avera
 Variants of this inequality (which is restricted to bounded random variables) are also called Chernoff bound.\footnote{\url{https://en.wikipedia.org/wiki/Chernoff_bound}}
 Next, we shall see a proof through the use of moment generating functions (MGF).
 
-\begin{definition}[Moment generating function]
-For a random variable $X$, its MGF is given by
-\[ M_X(t) \define \ex{\exp(t X)} \]
-One can also think of the MGF in terms of Taylor's expansion of $\exp(tX)$ as
-\[ M_X(t) = 1 + t \ex{X} + \frac{t^2}{2} \ex{X^2} + \frac{t^3} 6 \ex{X^3} + \cdots  \]
-Thus, the first moment is the mean of $X$.
-The second moment is the variance of $X$ (assuming the mean of $X$ is zero).
-And so on.
+\subsubsection{Moment generating functions}
+
+\begin{definition}[Moment generating functions]\label{def_mgf}
+    For a random variable $X$, its MGF is given by
+    \[ M_X(t) \define \ex{\exp(t X)} \]
+    One can also think of the MGF in terms of Taylor's expansion of $\exp(tX)$ as
+    \[ M_X(t) = 1 + t \ex{X} + \frac{t^2}{2} \ex{X^2} + \frac{t^3} 6 \ex{X^3} + \cdots  \]
+    Thus, the first moment is the mean of $X$.
+    The second moment is the variance of $X$ (assuming the mean of $X$ is zero).
+    And so on.
 \end{definition}
 
 The MGF of the sum of two independent random variables $X_1$ and $X_2$ is the product of the MGF of $X_1$ and $X_2$, respectively.
@@ -223,6 +225,18 @@ The MGF of the sum of two independent random variables $X_1$ and $X_2$ is the pr
     \item Here we have used that $X$ and $Y$ are independent, and hence $e^{tX}$ and $e^{tY}$ are independent, to conclude that $\ex{e^{tX} e^{tY}} = \ex{e^{tX}} \ex{e^{tY}}$
 \end{itemize}
 
+\begin{example}[Gaussian random variables]
+    In this example, we shall work through the above Definition \ref{def_mgf} in the case of a Gaussian random variable.
+    %we look at the MGF of Gaussian random variables.
+    Let $X \sim \cN(0, \sigma^2)$. Then, we will show that $M_X(t) = e^{\sigma^2 t^2 / 2}$.
+    To derive this, we use the definition of the probability density of Gaussian random variables:
+    \begin{align*}
+        M_X(t) = \ex{e^{tX}} &= \int \frac 1 {\sqrt{2\pi\sigma^2}} \exp\left( - \frac {x^2 - 2\sigma^2 tx} {2\sigma^2} \right) dx \\
+        &= \int \frac 1 {\sqrt{2 \pi\sigma^2}} \exp\left(- \frac {(x - \sigma^2 t)^2 - \sigma^4 t^2} {2\sigma^2} \right) dx \\
+        &= \exp\left( \frac {\sigma^2 t^2} 2 \right)
+    \end{align*}
+\end{example}
+
 The high-level idea for showing the Hoeffding's inequality is obtained by applying Markov's inequality to $e^{tX}$ for some well-chosen value $t$.
 From Markov's inequality, we can derive the following useful inequality: for any $t > 0$,
 \[ \Pr[X \ge a] = \Pr\left[e^{tX} \ge e^{ta}\right] \le \frac {\ex{e^{tX}}} {e^{ta}}  \]
@@ -231,6 +245,7 @@ In particular,
 Similarly, for any $t < 0$,
 \[ \Pr[X \le a] = \Pr[e^{tX} \ge e^{ta}] \le \min_{t < 0} \frac {\ex{e^{tX}}} {e^{ta}} \]
 Bounds for specific distributions are obtained by choosing appropriate values for $t$.
+See Chapter 4 in \cite{mitzenmacher2017probability} for further references.
 
 \subsubsection{Chernoff bounds for the sum of Poisson trials}
 
@@ -256,8 +271,8 @@ Since the $X_i$'s are independent from each other, we take the product of the $n
 Based on this result, we now apply Markov's inequality: for any $t > 0$, we have
 \begin{align*}
     \Pr[X \ge (1 + \delta) \mu] &= \Pr[e^{tX} \ge e^{t(1 + \delta) \mu}] \\
-    &\le \frac {\ex{e^{tX}}} {e^{t(1 + \delta) \mu}} \\
-    &\le \frac {e^{(e^t - 1) \mu}} {e^{t(1 + \delta) \mu}}
+    &\le \frac {\ex{e^{tX}}} {e^{t(1 + \delta) \mu}}
+    \le \frac {e^{(e^t - 1) \mu}} {e^{t(1 + \delta) \mu}}
 \end{align*}
 For any $\delta >0$, we can set $t = \ln(1 + \delta) > 0$ to get
 \[ \Pr[X \ge (1 + \delta) \mu] \le \left( \frac {e^{\delta}} {(1 + \delta)^{1 + \delta}} \right)^{\mu} \]
@@ -267,7 +282,7 @@ Taking the logarithm of both sides, we obtain
 \[ f(\delta) = \delta - (1 + \delta) \ln(1 + \delta) + \frac {\delta^2} 3 \le 0 \]
 Computing the derivatives of $f(\delta)$, we have:
 \begin{align*}
-    f'(\delta) = 1 - \frac {1 + \delta}{1 + \delta} - \ln(1 + \delta) + \frac {2 \delta} 3\\
+    f'(\delta) = 1 - \frac {1 + \delta}{1 + \delta} - \ln(1 + \delta) + \frac {2 \delta} 3,
     f''(\delta) = - \frac 1 {1 + \delta} + \frac 2 3
 \end{align*}
 We see that the second derivative is less than zero if $\delta < 1/2$, and it is positive otherwise.
@@ -276,33 +291,28 @@ Since $f'(0) = 0$ and $f'(1) < 0$, we conclude that $f'(\delta) \le 0$ in the in
 Since $f(0) = 0$, it follows that $f(\delta) \le 0$, which shows that for any $\delta$ between $0$ and $1$, we have
 \[ \Pr[X \ge (1 + \delta)\mu] \le e^{-\mu\delta^2 / 3}\]
 
+
+Next, let us look at an example of Chernoff bounds.
+
 \begin{example}[Coin flips]
 Let $X$ be the number of heads in a sequence of $n$ independent fair coin flips.
 That is $X = X_1 + X_2 + \cdots + X_n$, where every $X_i$ is a Bernoulli random variable yielding one with probability $1/2$.
 Applying the Chernoff bound, we have
 \[ \Pr\left[ \bigabs{X - \frac n 2} \ge \frac 1 2 \sqrt{6n\ln n} \right] \le 2\exp\left( - \frac 1 3 \frac n 2  \frac {6\ln n}{n}\right) = \frac 2 n \]
 This demonstrates that the concentration of the number of heads around the mean $n/2$ is very tight.
-Most of the time, the deviations from the mean are on the order of $O(\sqrt {n \ln n})$.\footnote{Other use cases of Chernoff bound: Suppose we are interested in evaluating the probability that a particular gene mutation occurs in the population.
+Most of the time, the deviations from the mean are on the order of $O(\sqrt {n \ln n})$.\footnote{Another use case of Chernoff bound: Suppose we are interested in evaluating the probability that a particular gene mutation occurs in the population.
 Given a DNA sample, a lab test can determine if it carries the mutation.
 However, the lab test is expensive and we would like to obtain a relatively reliable estimate from a small number of tests.}
 \end{example}
 
 \begin{example}[Gaussian random variables]
-In the next example, we look at the MGF of Gaussian random variables.
-Let $X \sim \cN(0, \sigma^2)$. Then, $M_X(t) = e^{\sigma^2 t^2 / 2}$.
-To derive this, we use the definition of Gaussian probability density:
-\begin{align*}
-    M_X(t) = \ex{e^{tX}} &= \int \frac 1 {\sqrt{2\pi\sigma^2}} \exp\left( - \frac {x^2 - 2\sigma^2 tx} {2\sigma^2} \right) dx \\
-    &= \int \frac 1 {\sqrt{2 \pi\sigma^2}} \exp\left(- \frac {(x - \sigma^2 t)^2 - \sigma^4 t^2} {2\sigma^2} \right) dx \\
-    &= \exp\left( \frac {\sigma^2 t^2} 2 \right)
-\end{align*}
-
-Based on the above MGF, we can derive a tail bound by plugging the form of MGF to equation \eqref{eq_tail_pos} to get:
-\begin{align*}
-    \Pr[X \ge \epsilon] \le \inf_t \exp\left(\frac {\sigma^2 t^2} 2 - t\epsilon \right)
-\end{align*}
-The infimum of the RHS is attained by setting $e = \frac{\epsilon} {\sigma^2}$, yielding:
-\[ \Pr[X \ge \epsilon] \le \exp\left( -\frac{ \epsilon^2} {2\sigma^2} \right) \]
+    Recall that the MGF of a standard Gaussian random variable is $M_X(t) = e^{\sigma^2 t^2 / 2}$.
+    We derive a tail bound by plugging in $M_X(t)$ to equation \eqref{eq_tail_pos}:
+    \begin{align*}
+        \Pr[X \ge \epsilon] \le \inf_t \exp\left(\frac {\sigma^2 t^2} 2 - t\epsilon \right)
+    \end{align*}
+    The minimum of the RHS is attained by setting $t = \frac{\epsilon} {\sigma^2}$, yielding:
+    \[ \Pr[X \ge \epsilon] \le \exp\left( -\frac{ \epsilon^2} {2\sigma^2} \right) \]
 \end{example}
 
 What about non-Gaussian random variables? Notice that the bound still holds if we replace $M_X(t)$ with an upper bound.
@@ -316,9 +326,38 @@ This motivates the following definition.
     It follows that for sub-Gaussian $X$, we again have that $\Pr[X \ge \epsilon] \le \exp(-\epsilon^2 /(2\sigma^2))$.
 \end{definition}
 
+\begin{example}[Revisiting ERM in the lens of sub-Gaussian random variables]
+    Imagine you are training a classifier. You want to know if the training error is a good proxy for the test error.
+    For most ML loss functions, their loss values are bounded (e.g., between $0$ and $1$ or another small constant $C > 0$).
+    Next, we shall verify that any bounded random variable is sub-Gaussian.
+    For any $t > 0$, suppose that $X$ is a bounded random variable between $a$ and $b$. %Thus, $Y$ is bounded between $-C/2$ and $C/2$.
+    First, the variance of $X$ is at most $(b - a)^2 / 4$.
+    To see this, \[ \Var{X} = \inf_t \ex{(X - t)^2} \le \ex{\left(X - \frac{b + a} 2\right)^2} \le \max\left((b - (b+a)/2)^2, (b - (b+a)/2)^2\right), \]
+    which is $(b - a)^2/ 4$.
+    
+    Next, let $\varphi(\lambda) = \log \exarg{P}{e^{\lambda X}}$.
+    Let $Q_\lambda(x)$ be the distribution of $x$ defined by
+    \[ dQ_\lambda(x) = \frac{e^{\lambda x}}{\exarg{X\sim P}{e^{\lambda X}}} dP(x) \]
+    Next, let us look at $\varphi'(\lambda)$ and $\varphi''(\lambda)$.
+    \begin{align*} 
+        \varphi'(\lambda) &= \frac{\exarg{P}{X e^{\lambda X}}}{\exarg{P}{e^{\lambda X}}} = \exarg{Q_{\lambda}}{X}, \\
+        \varphi''(\lambda) &= \frac{\exarg{P}{X^2 e^{\lambda X}}}{\exarg{P}{e^{\lambda X}}} - \frac{ (\exarg{P}{X e^{\lambda X}})^2 }{ (\exarg{P}{e^{\lambda X}})^2 } = \textup{Var}_{Q_\lambda}{[X]} \le \frac{(b-a)^2} 4
+    \end{align*}
+    Lastly, by Taylor's theorem, there exists $\lambda'$ between $0$ and $\lambda$ (when $\lambda > 0$; The case when $\lambda < 0$ is similar) such that
+    \[ \varphi(\lambda) = \varphi(0) + \varphi'(0) \lambda + \frac 1 2 \varphi''(\lambda') \lambda^2 \le \frac{\lambda^2 (b-a)^2} 8 \]
+    Plugging this back to the expression of $\varphi(\lambda)$ completes the proof.
+    %Consider $M_X(t) = \ex{e^{Xt}}$, in particular $e^{Xt}$ is convex in $X$ for any $t$ (take the second-derivative of this function w.r.t. $X$).
+    %Therefore, the maximum of $M_X(t)$ is attained at the two extreme points in the range of $X$, that is, $M_X(t) = p + (1 - p) e^{Ct}$ for some $p$ between $0$ and $1$.
+    %\begin{align}
+    %    M_Y(t) = \ex{e^{Yt}} = \int_{0}^C e^{X t} dX \le \int_0^C e^{Ct} dX = e^{Ct}.
+    %\end{align}
+    %When $t \le 0$, $M_X(t) \le 1 \le e^{Ct}$.
+    %Togwhich implies that $X$ is $2C$-sub-Gaussian.
+\end{example}
+
 %\paragraph{Next lecture:} Based on the concentration estimates we have established, next time we'll talk about how to get a generalization bound for learning finite hypothesis classes. We'll then start to talk about the Rademacher complexity, which is perhaps the most fundamental tool for deriving generalization bounds. {\bf Suggested readings:} Chapter 3.5 of \cite{liang2016cs229t}, and Chapter 3 of \cite{mitzenmacher2017probability}.
 
-\subsection{Using uniform convergence to reason about generalization (Lecture 4)}
+\subsection{Using uniform convergence to reason about generalization (Lecture 5)}
 
 We now give a high-level picture of the logic behind how we can use uniform convergence to reason about generalization in the context of ERM.
 This will lead us to the concept of Rademacher complexity, which is a crucial notion in statistical learning theory.
@@ -336,7 +375,6 @@ In particular,
 \begin{align}
     \hat L(\hat h_{\erm}) = \frac 1 n\sum_{i=1}^n \ell( \hat h_{\erm}(x_i), y_i ).
 \end{align}
-
 
 \begin{example}[Stochastic optimization]
     In practice, $\hat h_{\erm}$ is often computed using \emph{stochastic optimization}, such as stochastic gradient descent (SGD), which updates:
@@ -358,7 +396,6 @@ In particular, the $1/2$ above comes from combining the error terms from the fir
 Put it in words, we'd like to upper bound the probability that the largest difference between the empirical risk and the expected risk is larger than $\epsilon /2$.
 
 
-\paragraph{Next lecture:} In the next lecture, we will define \emph{Rademacher complexity}, and we will introduce concentration estimates as a fundamental tool for reasoning about generalization.
 
 \iffalse
 \subsection{Learning finite hypothesis space (Lecture 4)}
@@ -400,15 +437,13 @@ By setting $\epsilon = \sqrt{\frac {2(\log\abs{\cH} + \log(2\delta^{-1}))} n }$,
 
 \paragraph{Remarks:} We have removed the realizable assumption by suffering a $\sqrt n$ factor in the generalization bound. The $\sqrt n$ factor arises from sampling noise.
 It makes sense that learning is faster when there is no noise.
+\fi
 
-
-\subsection{Rademacher complexity (Lecture 4)}
+\subsection{Rademacher complexity (Lecture 5)}
 
 Both of our generalization bounds require finite hypothesis classes. What about infinite hypothesis classes?
-
-We can't directly apply the union bound to infinite hypothesis classes.
-Need a more sophisticated way to measure complexity of a hypothesis class.
-
+Note that we cannot directly apply the union bound to infinite hypothesis classes.
+Instead, we need a more sophisticated way to measure complexity of a hypothesis class.
 With Rademacher complexity, the key idea is \hl{symmetrization}. Along the way, we need an extension of the Hoeffding's inequality to some function of bounded random variables, which is known as McDiarmid's inequality.
 Let us first start by motivating why we need these tools.
 
@@ -430,9 +465,8 @@ Then we have that
 Let us focus on the first case, since the second case will be similar.
 
 Now, our main object becomes $G_n$: This is a rather non-trivial function, because of taking the supremum over a sum of random variables.
-
-Hence, let’s look at its expectation first!
-Usually, when we encounter a complicated random variable, we start by examining its first moment, then second moment, and so on.
+Instead, we will look at its expectation (or first moment).
+%Usually, when we encounter a complicated random variable, we start by examining its , then second moment, and so on.
 
 \subsubsection{Defintion of Rademacher complexity}
 
@@ -441,11 +475,9 @@ Recall that $\hat L(h)$ is the empirical risk, and $L(h)$ is the expected risk.
 
 This quantity is still quite difficult because it depends on the expected risk, an expectation over the unknown data distribution.
 The key idea of symmetrization is to remove this expected risk term with a ``simpler'' term.
-
-\paragraph{Definition of Rademacher complexity:}
+%\paragraph{Definition of Rademacher complexity:}
 Let us imagine $n$ data points $Z'_1 = (x'_1, y'_1), Z'_2 = (x'_2, y'_2), \dots, Z'_n = (x'_n, y'_n)$, sampled from the true data distribution.
 Then, clearly $L(h) = \ex{\hat L'(h)}$, where $\hat L'(h)$ is the empirical risk on this ``copy'' dataset.
-
 Hence,
 \begin{align*}
     \ex{G_n} &= \exarg{Z_{1:n}}{\sup_{h\in\cH} (L(h) - \hat L(h))} \\
@@ -454,7 +486,6 @@ Hence,
 \end{align*}
 
 Let us remove the dependence on the copy dataset. To that end, we introduce IID Rademacher random variables $\sigma_1, \sigma_2, \dots, \sigma_n$ sampled uniformly from $\set{+1, -1}$.
-
 Notice that \[ \hat L'(h) - \hat L(h) = \sum_{i=1}^n (\ell(h(x'_i), y'_i) - \ell(h(x_i), y_i)), \]
 is symmetric around zero.
 Hence, multiplying each individual term by $\sigma_i$ does not change its distribution.
@@ -471,6 +502,9 @@ Define the Rademacher complexity (or Rademacher average) of $\cH$ to be
 \[ R_n(\cH) \define \exarg{Z_{1:n}, \sigma_{1:n}}{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i \ell(h(x_i), y_i)}, \]
 where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distribution, and $\sigma_i$ is sampled uniformly from $\set{+1, -1}$.
 
+\paragraph{Next lecture:} In the next lecture, we will use Rademacher complexity as a generic tool to reason about generalization.
+
+\iffalse
 \subsubsection{Generalization bounds based on Rademacher complexity}
 
 To see the power of the concept we just introduced, here is a very general statement where we can always rely on when we work with supervised learning algorithms and models. 
