@@ -217,7 +217,7 @@ Next, we shall see a proof through the use of moment generating functions (MGF).
     And so on.
 \end{definition}
 
-The MGF of the sum of two independent random variables $X_1$ and $X_2$ is the product of the MGF of $X_1$ and $X_2$, respectively.
+The MGF of the sum of two independent random variables $X$ and $Y$ is the product of the MGF of $X$ and $Y$, respectively.
 \begin{itemize}
     \item To see this, notice that
     \[ M_{X + Y}(t) = \ex{e^{t(X + Y)}} = \ex{e^{tX} e^{tY}} = \ex{e^{tX}} \ex{e^{tY}} = M_X(t) M_Y(t) \]
@@ -332,7 +332,12 @@ This motivates the following definition.
     Next, we shall verify that any bounded random variable is sub-Gaussian.
     For any $t > 0$, suppose that $X$ is a bounded random variable between $a$ and $b$. %Thus, $Y$ is bounded between $-C/2$ and $C/2$.
     First, the variance of $X$ is at most $(b - a)^2 / 4$.
-    To see this, \[ \Var{X} = \inf_t \ex{(X - t)^2} \le \ex{\left(X - \frac{b + a} 2\right)^2} \le \max\left((b - (b+a)/2)^2, (b - (b+a)/2)^2\right), \]
+    To see this, 
+    \begin{align*}
+        \Var{X} &= \inf_t \ex{(X - t)^2} \tag{because the minimum is achieved when $t = \ex{X}$}\\
+        &\le \ex{\left(X - \frac{b + a} 2\right)^2} \tag{one can verify that $\ex{(t - \frac{b+a}2) (\frac{b+a}2 - X)} \le 0$} \\
+        &\le \max\left((b - (b+a)/2)^2, (a - (b+a)/2)^2\right), 
+    \end{align*}
     which is $(b - a)^2/ 4$.
     
     Next, let $\varphi(\lambda) = \log \exarg{P}{e^{\lambda X}}$.
