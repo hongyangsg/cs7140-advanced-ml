@@ -444,7 +444,7 @@ By setting $\epsilon = \sqrt{\frac {2(\log\abs{\cH} + \log(2\delta^{-1}))} n }$,
 It makes sense that learning is faster when there is no noise.
 \fi
 
-\subsection{Rademacher complexity (Lecture 5)}
+\subsection{Rademacher complexity (Lecture 6)}
 
 Both of our generalization bounds require finite hypothesis classes. What about infinite hypothesis classes?
 Note that we cannot directly apply the union bound to infinite hypothesis classes.
@@ -452,17 +452,14 @@ Instead, we need a more sophisticated way to measure complexity of a hypothesis 
 With Rademacher complexity, the key idea is \hl{symmetrization}. Along the way, we need an extension of the Hoeffding's inequality to some function of bounded random variables, which is known as McDiarmid's inequality.
 Let us first start by motivating why we need these tools.
 
-\subsubsection{Motivation}
+\subsubsection{Motivation}\label{subsubsec_motiv}
 
 Recall that, within the uniform convergence framework, we want to get a statement of the following
-
 \begin{align}
     \Pr\left[ L(\hat h) - L(h^{\star}) \ge \epsilon \right]
     \le \Pr\left[ \sup_{h\in\cH} \abs{L(h) - \hat L(h)} \ge \frac{\epsilon} 2 \right] \le \delta
 \end{align}
-
 Since there are two cases here, let us denote
-
 \[ G_n \define \sup_{h\in\cH} L(h) - \hat L(h), \quad G'_n \define \sup_{h\in\cH} \hat L(h) - L(h) \]
 Then we have that
 \[ \Pr\left[\sup_{h\in\cH} \abs{L(h) - \hat L(h)} \ge \frac {\epsilon} 2 \right] 
@@ -473,16 +470,16 @@ Now, our main object becomes $G_n$: This is a rather non-trivial function, becau
 Instead, we will look at its expectation (or first moment).
 %Usually, when we encounter a complicated random variable, we start by examining its , then second moment, and so on.
 
-\subsubsection{Defintion of Rademacher complexity}
+\subsubsection{Definition of Rademacher complexity}
 
-Our main object of interest is now $\ex{G_n} = \ex{\sup_{h\in\cH} (L(h) - \hat L(h))}$.
+Our main object of interest is now \[ \ex{G_n} = \ex{\sup_{h\in\cH} (L(h) - \hat L(h))}. \]
 Recall that $\hat L(h)$ is the empirical risk, and $L(h)$ is the expected risk.
 
 This quantity is still quite difficult because it depends on the expected risk, an expectation over the unknown data distribution.
-The key idea of symmetrization is to remove this expected risk term with a ``simpler'' term.
+The key idea of symmetrization is to remove this expected risk term with a simpler term.
 %\paragraph{Definition of Rademacher complexity:}
 Let us imagine $n$ data points $Z'_1 = (x'_1, y'_1), Z'_2 = (x'_2, y'_2), \dots, Z'_n = (x'_n, y'_n)$, sampled from the true data distribution.
-Then, clearly $L(h) = \ex{\hat L'(h)}$, where $\hat L'(h)$ is the empirical risk on this ``copy'' dataset.
+Then, clearly $L(h) = \ex{\hat L'(h)}$, where $\hat L'(h)$ is the empirical risk on this copy dataset.
 Hence,
 \begin{align*}
     \ex{G_n} &= \exarg{Z_{1:n}}{\sup_{h\in\cH} (L(h) - \hat L(h))} \\
@@ -490,7 +487,7 @@ Hence,
     &= \exarg{Z_{1:n}} {\exarg{Z'_{1:n}} {\sup_{h \in \cH} (\hat L'(h) - \hat L(h)) }  }
 \end{align*}
 
-Let us remove the dependence on the copy dataset. To that end, we introduce IID Rademacher random variables $\sigma_1, \sigma_2, \dots, \sigma_n$ sampled uniformly from $\set{+1, -1}$.
+Let us remove the dependence on the copy dataset. To that end, we introduce independent Rademacher random variables $\sigma_1, \sigma_2, \dots, \sigma_n$ sampled uniformly from $\set{+1, -1}$.
 Notice that \[ \hat L'(h) - \hat L(h) = \sum_{i=1}^n (\ell(h(x'_i), y'_i) - \ell(h(x_i), y_i)), \]
 is symmetric around zero.
 Hence, multiplying each individual term by $\sigma_i$ does not change its distribution.
@@ -507,40 +504,41 @@ Define the Rademacher complexity (or Rademacher average) of $\cH$ to be
 \[ R_n(\cH) \define \exarg{Z_{1:n}, \sigma_{1:n}}{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i \ell(h(x_i), y_i)}, \]
 where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distribution, and $\sigma_i$ is sampled uniformly from $\set{+1, -1}$.
 
-\paragraph{Next lecture:} In the next lecture, we will use Rademacher complexity as a generic tool to reason about generalization.
+%\paragraph{Next lecture:} In the next lecture, we will use Rademacher complexity as a generic tool to reason about generalization.
 
-\iffalse
+\begin{example}[Rademacher complexity of $\ell_2$-norm bounded linear predictors]\label{ex_rad_l2}
+    Let $\cH = \set{z \rightarrow \inner{w}{z} \mid w \in \cW}$ be a set of linear functions such that $\bignorm{w} \le B$ for any $w \in \cW$.
+    Furthermore, assume the data distribution has a bounded second moment:
+    \[ \exarg{z\sim\bP}{\bignorm{z}^2 } \le C^2 \]
+    Then we have
+    \[ R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n h(z_i)} \le \frac {B \cdot C} {\sqrt n} \]
+\end{example}
+
+\begin{example}[Rademacher complexity of two-layer neural networks with bounded layer norms]\label{ex_rad_nn2}
+    Let $\cH=\set{ f_{\Phi} \mid \bignorm{w} \le B', \bignorms{U} \le B }$. Then the Rademacher complexity of $\cH$ is bounded by \[ R_n(\cH) \le 2B B' \sqrt{\frac {m} {n}} \]
+    Imagine we use a two-layer neural network to classify MNIST digits. If we use a network with $m$ neurons. This result says that the Rademacher complexity scales with the operator norm of the first layer weights and the second layer weights.
+\end{example}
+
 \subsubsection{Generalization bounds based on Rademacher complexity}
 
-To see the power of the concept we just introduced, here is a very general statement where we can always rely on when we work with supervised learning algorithms and models. 
-
-\paragraph{Generalization bounds based on Rademacher complexity:}
-Define \[ \cA = \set{(x, y) \rightarrow \ell(h(x), y) : h \in \cH}\] to be the loss function composed with the hypothesis space.
+To see the power of the concept we just introduced, here is a very general statement where we can always rely on when we work with supervised learning algorithms and models.
+%\paragraph{Generalization bounds based on Rademacher complexity:}
+Define \[ \cA = \set{(x, y) \rightarrow \ell(h(x), y) : h \in \cH}\] as the loss function composed with the hypothesis space.
 Let $\cR_n(\cA)$ denote the Rademacher complexity of the function class $\cA$.
-
 With probability at least $1 - \delta$,
 \begin{align} L(\hat h_{\erm}) - L(h^{\star}) \le 4 R_n(\cA) + \sqrt{\frac {2\log(2\delta^{-1})} n} \label{eq_rade_bound}\end{align}
-To be clear, recall that $\hat h_{\erm}$ is the empirical risk minimizer (ERM), $h^{\star}$ is the expected risk minimizer, and $n$ is the size of the training set.
+Recall that $\hat h_{\erm}$ is the empirical risk minimizer (ERM), $h^{\star}$ is the expected risk minimizer, and $n$ is the size of the training set.
 
-\paragraph{Proof sketch:}
-\begin{itemize}
-    \item Show that empirical Rademacher complexity is close to the expectation
-    \item Use McDiarmid's inequality, which is essentially a concentration result for functions of IID random variables. We'll introduce this tool shortly
-    \item Show that the Rademacher complexity upper bounds the excess risk. We've seen this logic from the motivation
-\end{itemize}
-In more detail, recall that $G_n = \sup_{h\in\cH} L(h) - \hat L(h)$.
-Our first claim is to show that $G_n$ is close to $\ex{G_n}$:
-\begin{align}
-    \Pr\left[ G_n \ge \ex{G_n} + \epsilon \right] \le \exp(-2n\epsilon^2) \label{eq_gn_dev}
-\end{align}
-This shows that $G_n$ is indeed close to its expectation plus a small error. Hence it suffices to upper bound its expectation.
 
-Our second claim is to show that $\ex{G_n}$ is upper bounded by the Rademacher complexity.
-\begin{align*}
-    \ex{G_n} \le 2R_n(\cA).
-\end{align*}
-We have already seen the proof of this claim.
-Combined together, we can derive \eqref{eq_rade_bound}.
+\begin{example}[Interpreting $G_n$ for linear predictors]
+    Let $\cH = \set{ x \mapsto \inner{w}{x} : \bignorm{w}2 \le B }$ and assume the loss $\ell(h(x),y)$ is bounded.
+    For a fixed hypothesis $h$, the quantity $L(h)-\hat L(h)$ measures how much the empirical risk underestimates the true risk.
+    The supremum in $G_n$ searches for the {worst-case hypothesis} whose empirical performance looks overly optimistic.
+    Geometrically, $G_n$ quantifies how well the training data fits noise. If there exists a direction $w$ such that the correlation between $w$ and data align on the sample but not in expectation, then $G_n$ will be large.
+    Using symmetrization, we showed that $\ex{G_n} \le 2 R_n(\cA),$ where $\cA={(x,y)\mapsto \ell(h(x),y)\in\cH}$.
+    For linear predictors with bounded norm, this implies $\ex{G_n} \lesssim \frac{B C}{\sqrt n},$ where $C^2=\ex{\bignorm{x}^2}$.
+    Thus, as the sample size grows, even the most overfit hypothesis cannot exploit randomness in the data beyond $O(n^{-1/2})$ scaling.
+\end{example}
 
 \subsubsection{Properties of Rademacher complexity}\label{sec_property_rade}
 
@@ -568,25 +566,49 @@ This property is useful because we can start by studying a simpler hypothesis cl
 \paragraph{Convex hull:} The convex hull of a set $\cH$ is when we take all possible linear combinations of the hypotheses in $\cH$.
 One useful property is that taking the convex of $\cH$ preserves the Rademacher complexity: $R_n(\cH) = R_n(\textup{convex-hull}(\cH))$.
 
-Proof: Notice that the supreme over the convex hull must be attained at a vertex of the convex hull.
+To see this, notice that the supreme over the convex hull must be attained at a vertex of the convex hull.
 This property is quite useful if we want to calculate the Rademacher complexity of a polytope. Though it is an infinite set, it suffices to examine the vertices of the polytope. We'll use this property when we examine the $\ell_1$-regularization.
 
-\subsubsection{Wrapping up the proof of \eqref{eq_rade_bound} (Lecture 6)}
+\subsubsection{Proof of Rademacher complexity generalization bounds}
+
+The proof involves three steps:
+\begin{itemize}
+    \item Show that empirical Rademacher complexity is close to the expectation.
+    \item Use McDiarmid's inequality, which is essentially a concentration result for functions of independent random variables.
+    \item Show that the Rademacher complexity upper bounds the excess risk. We've seen this step from Section \ref{subsubsec_motiv}.
+\end{itemize}
+In more detail, recall that $G_n = \sup_{h\in\cH} L(h) - \hat L(h)$.
+Our first claim is to show that $G_n$ is close to $\ex{G_n}$:
+\begin{align}
+    \Pr\left[ G_n \ge \ex{G_n} + \epsilon \right] \le \exp(-2n\epsilon^2) \label{eq_gn_dev}
+\end{align}
+This shows that $G_n$ is indeed close to its expectation plus a small error. Hence it suffices to upper bound its expectation.
+
+Our second claim is to show that $\ex{G_n}$ is upper bounded by the Rademacher complexity.
+\begin{align*}
+    \ex{G_n} \le 2R_n(\cA).
+\end{align*}
+We have already seen the proof of this claim.
+Combined together, we can derive \eqref{eq_rade_bound}.
 
 Recall that \eqref{eq_gn_dev} that we'd like to show $G_n$ and its expectation $\ex{G_n}$ are close to each other.
 In order to complete this result, we'll use a tool called McDiarmid’s inequality.
 
-\paragraph{McDiarmid’s inequality:} the bounded differences inequality
-\begin{itemize}
-    \item Let $f$ be a function satisfying the following bounded differences condition for all $i = 1, 2, \dots, n$ and all $x_1, x_2, \dots, x_n$, and any $x'_i$:
+\begin{mdframed}[
+    roundcorner=10pt,
+    leftmargin=0.04\textwidth,
+    rightmargin=0.04\textwidth]
+    \textbf{McDiarmid’s inequality} (The bounded differences inequality):
+    Let $f$ be a function satisfying the following bounded differences condition for all $i = 1, 2, \dots, n$ and all $x_1, x_2, \dots, x_n$, and any $x'_i$:
     \[ \bigabs{ f(x_1, x_2, \dots, x_n) - f(x_1, \dots, x_{i-1}, x'_i, x_{i+1}, \dots, x_n) } \le c_i \]
     In other words, modifying one coordinate does not change the function value too much.
 
-    \item Let $X_1, X_2, \dots, X_n$ be independent random variables. Then
+    Let $X_1, X_2, \dots, X_n$ be independent random variables. Then
     \begin{align}\label{eq_mcdiarmid} \Pr\left[ \bigabs{f(X_1, X_2, \dots, X_n) - \ex{f(X_1, X_2, \dots, X_n)}} \ge \epsilon \right] \le \exp \left( - \frac {2 \epsilon^2} {\sum_{i=1}^n c_i^2} \right) \end{align}
-\end{itemize}
+\end{mdframed}
 
-\paragraph{Remark:} McDiarmid’s inequality generalizes Hoeffding’s inequality.
+\begin{remark}
+McDiarmid’s inequality generalizes Hoeffding’s inequality.
 Let the function $f(x_1, x_2, \dots, x_n) = \frac 1 n \sum_{i=1}^n x_i$ be the empirical mean.
 Suppose every $x_i$ and $x'_i$ are bounded from above by one.
 Then, changing $x_i$ to $x'_i$ changes the function value by at most $\frac 2 n$, leading to $c_i = \frac 2 n$ for all $i = 1, 2, \dots, n$.
@@ -595,18 +617,18 @@ Plugging this to \eqref{eq_mcdiarmid} recovers the Hoeffding's inequality.
 
 This result is quite powerful, since it holds for any independent random variables, and $f$ can be complex (say a neural net).
 As long as this function is not too sensitive to perturbations in one coordinate, we get good concentration.
+\end{remark}
 
-\paragraph{Proof of McDiarmid’s inequality:}
+\begin{proof}[Proof of equation \eqref{eq_mcdiarmid}]
 Recall the definition of a martingale sequence
-\begin{itemize}
-    \item A sequence of $Z_0, Z_1, \dots, Z_n$ is a martingale sequence with respect to another sequence of random variables $X_1, X_2, \dots, X_n$ if and only if $Z_i$ only depends on $X_{1:i}$ and $\ex{Z_i | X_{1:i-1}} = Z_{i-1}$
+A sequence of random variables $Z_0, Z_1, \dots, Z_n$ is a martingale sequence with respect to another sequence of random variables $X_1, X_2, \dots, X_n$ if and only if $Z_i$ only depends on $X_{1:i}$ and $\ex{Z_i | X_{1:i-1}} = Z_{i-1}$.
 
-    \item For a martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that $\ex{Z_i | Z_{< i}} = 0$ and $\abs{Z_i} \le c_i$. Then with probability at least $1 - \delta$,
+For a martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that $\ex{Z_i | Z_{< i}} = 0$ and $\abs{Z_i} \le c_i$. Then with probability at least $1 - \delta$,
     \begin{align}\label{eq_azuma}
         \sum_{i = 1}^n Z_i \le \sqrt{2\Big(\sum_{i=1}^n c_i^2\Big) \log(\delta^{-1})}
     \end{align}
     For reference, see Chapter 12.4 of \citet{mitzenmacher2017probability}.\footnote{See also \url{https://en.wikipedia.org/wiki/Azuma\%27s_inequality}}
-\end{itemize}
+
 We’re going to construct a sequence
 \begin{align}
     Z_i = \ex{f(X_1, X_2, \dots, X_n) \mid X_{1:i}}
@@ -663,26 +685,24 @@ Consider changing $Z_i$ to $Z'_i$ in $G_n$, we’d like to bound the difference
 \end{align*}
 This is because the loss values are within $0$ and $1$.
 Taking supreme cannot increase the difference.
+\end{proof}
 
-In summary, we now put all the pieces together to complete the proof of \eqref{eq_rade_bound}.
-\begin{itemize}
-    \item We’d like to show that, for $\epsilon = 4R_n(\cA) + \sqrt{\frac {2\log(2\delta^{-1})} n}$,
+We now put all the pieces together to complete the proof of equation \eqref{eq_rade_bound}.
+\begin{proof}[Proof of equation \eqref{eq_rade_bound}] 
+    We’d like to show that, for $\epsilon = 4R_n(\cA) + \sqrt{\frac {2\log(2\delta^{-1})} n}$,
         \[ \Pr[L(\hat h_{\erm}) - L(h^{\star}) \ge \epsilon ] \le \Pr\left[ \sup_{h\in\cH} \bigabs{L(h) - \hat L(h)} \ge \frac {\epsilon} 2\right] \le \delta \] 
-
-    \item The latter reduces to showing that
+    The latter reduces to showing that
         \[ \Pr\left[\sup_{h \in \cH} \bigabs{L(h) - \hat L(h)} \ge \frac {\epsilon} 2\right] \le \Pr[G_n \ge \frac {\epsilon} 2 ] + \Pr[G'_n \ge \frac {\epsilon} 2]  \]
-
-    \item By the steps above, we have
+    By the steps above, we have
         \begin{align*}
             \Pr[G_n \ge \frac{\epsilon} 2 ] &\le \Pr\left[G_n - \ex{G_n} \ge \sqrt{\frac {\log(2\delta^{-1})} {2n}}\right]\\
             &\le \exp\left( -2n \left(\frac {\log(2\delta^{-1})} {2n}\right)\right) = \frac {\delta} 2
         \end{align*}
     The first line is because by \eqref{eq_Rn_rad}, $\ex{G_n} \le 2 R_n(\cA)$.
+    A similar proof applies to show that $\Pr[G'_n \ge \frac {\epsilon} 2] \le \frac {\delta} 2$.
+\end{proof}
 
-    \item A similar proof applies to show that $\Pr[G'_n \ge \frac {\epsilon} 2] \le \frac {\delta} 2$
-\end{itemize}
-
-
+\iffalse
 \subsection{Examples of Rademacher complexity (Lecture 5)}
 
 So far, we have set up Rademacher complexity for bounding the complexity of an infinite hypothesis class.
@@ -743,27 +763,22 @@ The first example applies to Ridge regression, for instance, training models wit
 The second example applies to LASSO regression, i.e., training with $\ell_1$-regularization instead.
 Next, we'll derive the Rademacher complexity of these two examples.
 
-\paragraph{Rademacher complexity of $\ell_2$ balls:}
-Let $\cH = \set{z \rightarrow \inner{w}{z} \mid w \in \cW}$ be a set of linear functions such that $\bignorm{w} \le B$ for any $w \in \cW$.
-Furthermore, assume the data distribution has a bounded second moment:
-\[ \exarg{z\sim\bP}{\bignorm{z}^2 } \le C^2 \]
-Then we have
-\[ R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n h(z_i)} \le \frac {B \cdot C} {\sqrt n} \]
-
-\paragraph{Proof:} The key idea is to exploit the linear algebraic structure of the Rademacher complexity
-\begin{align*}
-    R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i h(z_i)}
-    &= \ex{\sup_{w\in\cW} \frac 1 n\sum_{i=1}^n \sigma_i \inner{w}{z_i}} \\
-    &\le \ex{\sup_{w \in \cW} \bignorm{\frac {w} n} \cdot \bignorm{\sum_{i=1}^n \sigma_i z_i}} \\
-    &\le \frac{ B } n \cdot \ex{\bignorm{ \sum_{i=1}^n \sigma_i z_i}}
-\end{align*}
-by the condition placed on $\cW$.
-Finally, by Jensen's inequality, the above is at most
-\begin{align*}
-    \frac B n \cdot \sqrt{\ex{\bignorm{\sum_{i=1}^n \sigma_i z_i}^2 }}
-    = \frac B n \cdot \sqrt{\sum_{i=1}^n \ex{\bignorm{z_i}^2}}
-    \le \frac {B \cdot C} {\sqrt n}
-\end{align*}
+\begin{proof}[Proof of Example \ref{ex_rad_l2}]
+    The key idea is to exploit the linear algebraic structure of the Rademacher complexity
+    \begin{align*}
+        R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i h(z_i)}
+        &= \ex{\sup_{w\in\cW} \frac 1 n\sum_{i=1}^n \sigma_i \inner{w}{z_i}} \\
+        &\le \ex{\sup_{w \in \cW} \bignorm{\frac {w} n} \cdot \bignorm{\sum_{i=1}^n \sigma_i z_i}} \\
+        &\le \frac{ B } n \cdot \ex{\bignorm{ \sum_{i=1}^n \sigma_i z_i}}
+    \end{align*}
+    by the condition placed on $\cW$.
+    Finally, by Jensen's inequality, the above is at most
+    \begin{align*}
+        \frac B n \cdot \sqrt{\ex{\bignorm{\sum_{i=1}^n \sigma_i z_i}^2 }}
+        = \frac B n \cdot \sqrt{\sum_{i=1}^n \ex{\bignorm{z_i}^2}}
+        \le \frac {B \cdot C} {\sqrt n}
+    \end{align*}
+\end{proof}
 
 \paragraph{Rademacher complexity of $\ell_1$ balls:}
 In some applications, we have a finite but large set of features, and we believe that only a small subset of them are relevant to our task.
@@ -941,10 +956,9 @@ Given an input vector $x\in\real^d$, let
 denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
 Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
 
-\paragraph{First result:} Let $\cH=\set{ f_{\Phi} \mid \bignorm{w} \le B', \bignorms{U} \le B }$. Then the Rademacher complexity of $\cH$ is bounded by \[ R_n(\cH) \le 2B B' \sqrt{\frac {m} {n}} \]
-Imagine we use a two-layer neural network to classify MNIST digits. If we use a network with $m$ neurons. This result says that the Rademacher complexity scales with the operator norm of the first layer weights and the second layer weights.
 
-\paragraph{Proof:} Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
+\begin{proof}[Proof of Example \ref{ex_rad_nn2}]
+Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
 \begin{align*}
     R_n(\cH) = \exarg{\sigma_{1:n}}{ \sup_{\Phi\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i w^{\top} \phi(Ux) }
 \end{align*}
@@ -960,6 +974,7 @@ Furthermore, the absolute value can be divided into two parts. Hence, the above 
 To finish the proof, we invoke our Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.
 
 Provided with the Rademacher complexity of two-layer neural nets, we can get a generalization bound for neural networks, adding an extra factor of $\sqrt{\log(\delta^{-1})/n}$.
+\end{proof}
 
 \paragraph{Second result:} The first result scales with $\sqrt m$ -- number of hidden units.
 Hence, the result gets worse when we over-parametrize with more hidden units.
