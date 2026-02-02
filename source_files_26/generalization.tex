@@ -515,6 +515,14 @@ where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distributio
 \end{example}
 
 \begin{example}[Rademacher complexity of two-layer neural networks with bounded layer norms]\label{ex_rad_nn2}
+    Consider a two-layer ReLU neural net with $m$ hidden units.
+    Let $\Phi = (w \in \real^m, U\in \real^{m\times d})$ denote the parameters for the first and second layers, respectively.
+    
+    Given an input vector $x\in\real^d$, let
+    \[ f_{\Phi}(x) = w^{\top} \phi(Ux) \in \real, \]
+    denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
+    Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
+
     Let $\cH=\set{ f_{\Phi} \mid \bignorm{w} \le B', \bignorms{U} \le B }$. Then the Rademacher complexity of $\cH$ is bounded by \[ R_n(\cH) \le 2B B' \sqrt{\frac {m} {n}} \]
     Imagine we use a two-layer neural network to classify MNIST digits. If we use a network with $m$ neurons. This result says that the Rademacher complexity scales with the operator norm of the first layer weights and the second layer weights.
 \end{example}
@@ -727,6 +735,10 @@ Then, we will go through several examples where the function class is infinite.
     %Notice that if we combine the above result \eqref{eq_emp_massart} with the Rademacher complexity-based generalization bound of equation \eqref{eq_rade_bound}, we recover the result in equation \eqref{eq_finite_real}.
 \end{mdframed}
 
+\begin{example}[Model Selection in AutoML]
+    In modern AutoML pipelines, we often select a model from a finite library $\mathcal{H}$ of $M$ pre-trained architectures (e.g., different versions of Vision Transformers). Since the models are fixed and we only choose the one with the minimum empirical risk $\hat{R}_n(h)$, our hypothesis class is finite. By Massart's Lemma, the complexity of this selection process scales with $\sqrt{\log M}$, meaning we can safely choose from thousands of models without significantly increasing the generalization gap, provided our validation set $n$ is sufficiently large. For instance, if there are $100$ models, the overfitting risk from picking the best model grows only with $\sqrt{\log(100)}$.
+\end{example}
+
 \begin{proof}
 For simplicity, let us denote $W_f = \frac 1 n \sum_{i=1}^n \sigma_i f(Z_i)$.
 Recall that the empirical Rademacher complexity is defined as
@@ -872,14 +884,6 @@ Proof sketch:
 
 \subsection{Two-layer neural networks (Lecture 7)}
 
-Setup: Consider a two-layer ReLU neural net with $m$ hidden units.
-Let $\Phi = (w \in \real^m, U\in \real^{m\times d})$ denote the parameters for the first and second layers, respectively.
-
-Given an input vector $x\in\real^d$, let
-\[ f_{\Phi}(x) = w^{\top} \phi(Ux) \in \real, \]
-denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
-Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
-
 
 \begin{proof}[Proof of Example \ref{ex_rad_nn2}]
 Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
@@ -901,7 +905,7 @@ Provided with the Rademacher complexity of two-layer neural nets, we can get a g
 \end{proof}
 
 %\paragraph{Second result:} 
-The first result scales with $\sqrt m$ -- number of hidden units.
+The above result scales with $\sqrt m$ -- number of hidden units.
 Hence, the result gets worse when we over-parametrize with more hidden units.
 Empirically, researchers have observed that generalization error can improve as number of hidden units increases.
 Here's the result from training a two-layer neural net on MNIST \citep{neyshabur2017exploring}.
