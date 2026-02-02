@@ -519,7 +519,7 @@ where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distributio
     Imagine we use a two-layer neural network to classify MNIST digits. If we use a network with $m$ neurons. This result says that the Rademacher complexity scales with the operator norm of the first layer weights and the second layer weights.
 \end{example}
 
-\subsubsection{Generalization bounds based on Rademacher complexity}
+\subsubsection{Generalization bounds}
 
 To see the power of the concept we just introduced, here is a very general statement where we can always rely on when we work with supervised learning algorithms and models.
 %\paragraph{Generalization bounds based on Rademacher complexity:}
@@ -569,7 +569,7 @@ One useful property is that taking the convex of $\cH$ preserves the Rademacher 
 To see this, notice that the supreme over the convex hull must be attained at a vertex of the convex hull.
 This property is quite useful if we want to calculate the Rademacher complexity of a polytope. Though it is an infinite set, it suffices to examine the vertices of the polytope. We'll use this property when we examine the $\ell_1$-regularization.
 
-\subsubsection{Proof of Rademacher complexity generalization bounds}
+\subsubsection{Proof of Rademacher complexity generalization bounds (optional)}
 
 The proof involves three steps:
 \begin{itemize}
@@ -702,28 +702,33 @@ We now put all the pieces together to complete the proof of equation \eqref{eq_r
     A similar proof applies to show that $\Pr[G'_n \ge \frac {\epsilon} 2] \le \frac {\delta} 2$.
 \end{proof}
 
-\iffalse
-\subsection{Examples of Rademacher complexity (Lecture 5)}
+\subsection{Examples of using Rademacher complexity (Lecture 7)}
 
 So far, we have set up Rademacher complexity for bounding the complexity of an infinite hypothesis class.
-Now, let's apply Rademacher complexity for the case when the function class is finite.
-Recall that we have already derived a nice generalization bound for finite hypothesis classes, using concentration inequalities (see result \eqref{eq_finite_real}).
-Still, this is a nice sanity check through a different route. Besides, we'll derive a useful result that will be helpful later on.
-
+Now, let us apply Rademacher complexity for the case when the function class is finite.
+Then, we will go through several examples where the function class is infinite.
+%Recall that we have already derived a nice generalization bound for finite hypothesis classes, using concentration inequalities (see result \eqref{eq_finite_real}).
+%Still, this is a nice sanity check through a different route. Besides, we'll derive a useful result that will be helpful later on.
 
 \subsubsection{Learning finite hypothesis classes}
 
-\paragraph{Massart's finite lemma:} Let $\cH$ be a set of functions/hypotheses.
-Let $M^2$ be a bound on the second moment of functions of $\cH$:
-\[ \sup_{f \in \cH} \frac 1 n \sum_{i = 1}^n (f(Z_i))^2 \le M^2, \]
-where $Z_i = (x_i, y_i)$ denotes an input data sample.
-Then, the empirical Rademacher complexity is bounded by:
-\begin{align}
-    \hat{R}_n(F) \le \sqrt{ \frac {2M^2 \log(\abs{\cH})} n } \label{eq_emp_massart}
-\end{align}
-Notice that if we combine the above result \eqref{eq_emp_massart} with the Rademacher complexity-based generalization bound of equation \eqref{eq_rade_bound}, we recover the result in equation \eqref{eq_finite_real}.
+\begin{mdframed}[
+    roundcorner=10pt,
+    leftmargin=0.1\textwidth,
+    rightmargin=0.1\textwidth]
+    \textbf{Massart's finite lemma:} Let $\cH$ be a set of functions/hypotheses.
+    Let $M^2$ be a bound on the second moment of functions of $\cH$:
+    \[ \sup_{f \in \cH} \frac 1 n \sum_{i = 1}^n (f(Z_i))^2 \le M^2, \]
+    where $Z_i = (x_i, y_i)$ denotes an input data sample.
+    Then, the empirical Rademacher complexity is bounded by:
+    \begin{align}
+        \hat{R}_n(F) \le \sqrt{ \frac {2M^2 \log(\abs{\cH})} n } \label{eq_emp_massart}
+    \end{align}
+    %Notice that if we combine the above result \eqref{eq_emp_massart} with the Rademacher complexity-based generalization bound of equation \eqref{eq_rade_bound}, we recover the result in equation \eqref{eq_finite_real}.
+\end{mdframed}
 
-\paragraph{Proof:} For simplicity, let us denote $W_f = \frac 1 n \sum_{i=1}^n \sigma_i f(Z_i)$.
+\begin{proof}
+For simplicity, let us denote $W_f = \frac 1 n \sum_{i=1}^n \sigma_i f(Z_i)$.
 Recall that the empirical Rademacher complexity is defined as
 \[ \hat R_n(F) = \exarg{\sigma_{1:n}} {\sup_{f \in \cH} W_f \mid Z_{1:n} } \]
 Let us write down the moment generating function of $\sup_{f\in\cH} W_f$, and we'll use the convexity of the exponential function
@@ -755,8 +760,9 @@ Taking log on both sides and dividing by $t$, we get:
 By setting $t$ to minimize the right-hand side above, we conclude that $\hat R_n(\cH) \le \sqrt{\frac {2\log(\bigabs{\cH}) M^2} {n}}$.
 
 We can apply the above result along with \eqref{eq_rade_bound} to derive the result for learning from a bounded set of $0$-$1$ valued functions.
+\end{proof}
 
-\subsubsection{Generalization bounds for $\ell_2$-norm/$\ell_1$-norm constrained linear models}
+\subsubsection{Norm-constrained linear models}
 
 The next two examples involve learning a linear model from a norm-bounded hypothesis space.
 The first example applies to Ridge regression, for instance, training models with weight decay.
@@ -780,7 +786,7 @@ Next, we'll derive the Rademacher complexity of these two examples.
     \end{align*}
 \end{proof}
 
-\paragraph{Rademacher complexity of $\ell_1$ balls:}
+\begin{example}[Rademacher complexity of $\ell_1$ balls]
 In some applications, we have a finite but large set of features, and we believe that only a small subset of them are relevant to our task.
 For such applications, $\ell_1$-regularization has proven to be a working strategy (e.g., pruning, compression).
 Assume that the entries of the input vector are bounded from above by some constant $C > 0$: $\max_{j=1}^d z_i[j] \le C$, for $i = 1, 2, \dots, n$.
@@ -789,17 +795,21 @@ Then, the Rademacher complexity of $\cH$ is bounded as follows
 \begin{align*}
     R_n(\cH) \le \frac{ B \cdot C \cdot \sqrt{2\log(2d)}} {\sqrt n}
 \end{align*}
+\end{example}
 
-\paragraph{Proof:} The key idea is that the $\ell_1$ ball is the convex hull of $2d$ weight vectors aligned with the basis
+\begin{proof}
+The key idea is that the $\ell_1$ ball is the convex hull of $2d$ weight vectors aligned with the basis
 \[ W = \set{Be_1, -Be_1, Be_2, -Be_2, \dots, Be_d, -Be_d} \]
 Since the Rademacher complexity of this class is equal to the Rademacher complexity of its convex hull, we just look at the finite class $W$ since
 \[ R_n(\cH) = \ex{\sup_{w\in W} \frac 1 n \sum_{i=1}^n \sigma_i \inner{w}{z_i}} \]
 Since $W$ is a finite set, we can apply Massart's finite lemma (see \eqref{eq_emp_massart}).
 In order to do so, we shall first check the moment condition:
-\[ \frac 1 n \sum_{i=1}^n (\sigma_i \inner{w}{z_i})^2 \le \bignorm{w}_1^2 \cdot \bignorm{z}_{\infty}^2 = B^2 \cdot C^2 \]
+\[ \frac 1 n \sum_{i=1}^n (\sigma_i \inner{w}{z_i})^2 \le \bignorm{w}_1^2 \cdot \bignorm{z}_{\infty}^2 = B^2 \cdot C^2. \]
 Thus, by result \eqref{eq_emp_massart}, we now get that
-\[ \hat R_n(\cH) \le \sqrt{\frac {2B^2 C^2 \log(2d)} n} \]
+\[ \hat R_n(\cH) \le \sqrt{\frac {2B^2 C^2 \log(2d)} n}. \]
+\end{proof}
 
+\iffalse
 \subsubsection{Binary classification}
 
 In the next example, we study the case of binary classification.
@@ -858,7 +868,83 @@ Proof sketch:
     Thus, \[\min_{h\in\cH} \tilde L_{\gamma} \le \min_{h\in\cH} L_{\gamma},
     \text{ and }~~ L_0(\hat h_{\erm}) \le \tilde L_{\gamma}(\hat h_{\erm}). \]
 \end{itemize}
+\fi
 
+\subsection{Two-layer neural networks (Lecture 7)}
+
+Setup: Consider a two-layer ReLU neural net with $m$ hidden units.
+Let $\Phi = (w \in \real^m, U\in \real^{m\times d})$ denote the parameters for the first and second layers, respectively.
+
+Given an input vector $x\in\real^d$, let
+\[ f_{\Phi}(x) = w^{\top} \phi(Ux) \in \real, \]
+denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
+Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
+
+
+\begin{proof}[Proof of Example \ref{ex_rad_nn2}]
+Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
+\begin{align*}
+    R_n(\cH) = \exarg{\sigma_{1:n}}{ \sup_{\Phi\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i w^{\top} \phi(Ux) }
+\end{align*}
+Let’s first deal with the supremum over the second layer weight $w$ by setting its direction to be the same as the other vector
+\[ R_n(\cH) \le B' \cdot \exarg{\sigma_{1:n}} { \sup_{\Phi\in\cH} \bignorms{\frac 1 n \sum_{i=1}^n \sigma_i \phi(Ux_i) } } \]
+Next, because there are $m$ neurons. Hence (by Cauchy-Schwartz inequality), we reduce the above to less than
+\[ B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} \bigabs{ \frac 1 n \sum_{i=1}^n \sigma_i \phi(u^{\top} x_i)} } \]
+The trick here is that since the operator norm of the first layer weight $U$ is bounded by $B$, the norm of every row of $U$ (or neuron) is also bounded by $B$.
+It remains to deal with the above.
+Here, we can use our composition property: $\phi$ is $1$-Lipschitz continuous.
+Furthermore, the absolute value can be divided into two parts. Hence, the above is at most
+\[ 2B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} { \frac 1 n \sum_{i=1}^n \sigma_i u^{\top} x_i} } \]
+To finish the proof, we invoke our Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.
+
+Provided with the Rademacher complexity of two-layer neural nets, we can get a generalization bound for neural networks, adding an extra factor of $\sqrt{\log(\delta^{-1})/n}$.
+\end{proof}
+
+%\paragraph{Second result:} 
+The first result scales with $\sqrt m$ -- number of hidden units.
+Hence, the result gets worse when we over-parametrize with more hidden units.
+Empirically, researchers have observed that generalization error can improve as number of hidden units increases.
+Here's the result from training a two-layer neural net on MNIST \citep{neyshabur2017exploring}.
+\begin{figure}
+    \centering
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{figures/mnist.png}    
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{figures/pathnorm.png}
+    \end{minipage}
+    \caption{Vary the number of neurons $m$ in a two-layer neural net. Path norm scales nicely with the test error.}
+    \label{fig:enter-label}
+\end{figure}
+
+We’ll show a generalization bound that does not depend on the number of hidden units $m$ using the path norm $P(w, U) = \sum_{i=1}^m \abs{w_i} \cdot \bignorm{u_i}$, where $u_i$ is the $i$-th row of $U$.
+Let $\cH = \set{f_{\Phi} \mid P(w, U) \le B}$. Then, the Rademacher complexity of $\cH$ is bounded as follows
+\[ R_n(\cH) \le B \sqrt{\frac 1 n}. \]
+
+\begin{proof}
+Let’s first write the Rademacher complexity.
+Recall that $u_i$ is the $i$-th row of $U$. We expand out the Rademacher complexity using
+\[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \phi(u_j^{\top} x_i) \]
+Let $\bar u_j = u_j / \bignorm{u_j}$. Because ReLU activation is $1$-Homogeneous, meaning that $\phi(c x) = c \phi(x)$, hence
+\[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \bignorm{u_j} \phi\big(\bar u_j^{\top} x_i\big) \]
+We apply this expansion to the Rademacher complexity
+\[ R_n(\cH) = \ex{\sup_{\Phi} \frac 1 n \sum_{i=1}^n \sigma_i \left(\sum_{j=1}^m w_j \bignorm{u_j} \phi(\bar u_j^{\top} x_i)\right). } \]
+Taking the supremum over $\Phi$ means that we’ll maximize the path norm above!
+Hence, after switching the order of the sum, we can get
+\[ R_n(\cH) \le B \cdot \ex{\max_{1\le j\le m} \bigabs{\frac 1 n \sum_{i=1}^n \sigma_i \phi(\bar u_j^{\top} x_i)}} \le 2B \sqrt{\frac 1 n}. \]
+\end{proof}
+
+
+\begin{remark}
+    The second result implies the first result. To see this, we use the Cauchy-Schwartz inequality:
+    \[ P(w, U) = \sum_{i=1}^m \abs{w_i} \cdot \bignorm{u_i} \le \sqrt{\sum_{i=1}^m w_i^2} \cdot \sqrt{\sum_{i=1}^m \bignorm{u_i}^2} \le B' \cdot B \cdot \sqrt m \]
+    Technically speaking, the path norm still scales with the number of hidden units.
+    However, as we saw from the previous slide, some neurons turn out to be quite small in the experiments, resulting in a small path norm even as $m$ increases.
+\end{remark}
+
+\iffalse
 \subsection{Matrix completion (Lecture 6)}
 
 Suppose you are asked to build a recommendation system. This system is used to predict the review rating of a movie.
@@ -945,74 +1031,4 @@ Here we'll use the claim that
 Showing this result requires using some facts related to the spectrum of random matrices, we'll cover this result at a later point in class.
 In summary, we have thus shown that
 \[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}} \]
-
-\subsection{Two-layer neural networks (Lecture 7)}
-
-Setup: Consider a two-layer ReLU neural net with $m$ hidden units.
-Let $\Phi = (w \in \real^m, U\in \real^{m\times d})$ denote the parameters for the first and second layers, respectively.
-
-Given an input vector $x\in\real^d$, let
-\[ f_{\Phi}(x) = w^{\top} \phi(Ux) \in \real, \]
-denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
-Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
-
-
-\begin{proof}[Proof of Example \ref{ex_rad_nn2}]
-Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
-\begin{align*}
-    R_n(\cH) = \exarg{\sigma_{1:n}}{ \sup_{\Phi\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i w^{\top} \phi(Ux) }
-\end{align*}
-Let’s first deal with the supremum over the second layer weight $w$ by setting its direction to be the same as the other vector
-\[ R_n(\cH) \le B' \cdot \exarg{\sigma_{1:n}} { \sup_{\Phi\in\cH} \bignorms{\frac 1 n \sum_{i=1}^n \sigma_i \phi(Ux_i) } } \]
-Next, because there are $m$ neurons. Hence (by Cauchy-Schwartz inequality), we reduce the above to less than
-\[ B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} \bigabs{ \frac 1 n \sum_{i=1}^n \sigma_i \phi(u^{\top} x_i)} } \]
-The trick here is that since the operator norm of the first layer weight $U$ is bounded by $B$, the norm of every row of $U$ (or neuron) is also bounded by $B$.
-It remains to deal with the above.
-Here, we can use our composition property: $\phi$ is $1$-Lipschitz continuous.
-Furthermore, the absolute value can be divided into two parts. Hence, the above is at most
-\[ 2B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} { \frac 1 n \sum_{i=1}^n \sigma_i u^{\top} x_i} } \]
-To finish the proof, we invoke our Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.
-
-Provided with the Rademacher complexity of two-layer neural nets, we can get a generalization bound for neural networks, adding an extra factor of $\sqrt{\log(\delta^{-1})/n}$.
-\end{proof}
-
-\paragraph{Second result:} The first result scales with $\sqrt m$ -- number of hidden units.
-Hence, the result gets worse when we over-parametrize with more hidden units.
-Empirically, researchers have observed that generalization error can improve as number of hidden units increases.
-Here's the result from training a two-layer neural net on MNIST \citep{neyshabur2017exploring}.
-\begin{figure}
-    \centering
-    \begin{minipage}{0.45\linewidth}
-        \centering
-        \includegraphics[width=0.75\linewidth]{source_files/figures/mnist.png}    
-    \end{minipage}\hfill
-    \begin{minipage}{0.45\linewidth}
-        \centering
-        \includegraphics[width=0.75\linewidth]{source_files/figures/pathnorm.png}
-    \end{minipage}
-    \caption{Vary the number of neurons $m$ in a two-layer neural net. Path norm scales nicely with the test error.}
-    \label{fig:enter-label}
-\end{figure}
-
-We’ll a generalization bound that does not depend on the number of hidden units $m$ using the path norm $P(w, U) = \sum_{i=1}^m \abs{w_i} \cdot \bignorm{u_i}$, where $u_i$ is the $i$-th row of $U$.
-Let $\cH = \set{f_{\Phi} \mid P(w, U) \le B}$. Then, the Rademacher complexity of $\cH$ is bounded as follows
-\[ R_n(\cH) \le B \sqrt{\frac 1 n} \]
-
-Remarks: The second result implies the first result. To see this, we use the Cauchy-Schwartz inequality:
-\[ P(w, U) = \sum_{i=1}^m \abs{w_i} \cdot \bignorm{u_i} \le \sqrt{\sum_{i=1}^m w_i^2} \cdot \sqrt{\sum_{i=1}^m \bignorm{u_i}^2} \le B' \cdot B \cdot \sqrt m \]
-
-Technically speaking, the path norm still scales with the number of hidden units.
-However, as we saw from the previous slide, some neurons turn out to be quite small in the experiments, resulting in a small path norm even as $m$ increases!
-
-\paragraph{Proof:} Let’s first write the Rademacher complexity.
-Recall that $u_i$ is the $i$-th row of $U$. We expand out the Rademacher complexity using
-\[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \phi(u_j^{\top} x_i) \]
-Let $\bar u_j = u_j / \bignorm{u_j}$. Because ReLU activation is $1$-Homogeneous, meaning that $\phi(c x) = c \phi(x)$, hence
-\[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \bignorm{u_j} \phi\big(\bar u_j^{\top} x_i\big) \]
-We apply this expansion to the Rademacher complexity
-\[ R_n(\cH) = \ex{\sup_{\Phi} \frac 1 n \sum_{i=1}^n \sigma_i \left(\sum_{j=1}^m w_j \bignorm{u_j} \phi(\bar u_j^{\top} x_i)\right) } \]
-Taking the supremum over $\Phi$ means that we’ll maximize the path norm above!
-Hence, after switching the order of the sum, we can get
-\[ R_n(\cH) \le B \cdot \ex{\max_{1\le j\le m} \bigabs{\frac 1 n \sum_{i=1}^n \sigma_i \phi(\bar u_j^{\top} x_i)}} \le 2B \sqrt{\frac 1 n} \]
-
 \fi
