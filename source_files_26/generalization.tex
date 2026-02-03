@@ -511,7 +511,7 @@ where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distributio
     Furthermore, assume the data distribution has a bounded second moment:
     \[ \exarg{z\sim\bP}{\bignorm{z}^2 } \le C^2 \]
     Then we have
-    \[ R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n h(z_i)} \le \frac {B \cdot C} {\sqrt n} \]
+    \[ R_n(\cH) = \ex{\sup_{h\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i h(z_i)} \le \frac {B \cdot C} {\sqrt n} \]
 \end{example}
 
 \begin{example}[Rademacher complexity of two-layer neural networks with bounded layer norms]\label{ex_rad_nn2}
@@ -521,7 +521,7 @@ where $Z_i = (x_i, y_i)$ is a random sample from the underlying data distributio
     Given an input vector $x\in\real^d$, let
     \[ f_{\Phi}(x) = w^{\top} \phi(Ux) \in \real, \]
     denote the output of the network, where $\phi(\cdot)$ is the activation function that is $1$-Lipschitz continuous.
-    Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball.
+    Let us assume the training set $\set{x_i}_{i=1}^n \subseteq \real^d$ lies in some bounded $\ell_2$-norm ball: $\bignorm{x_i} \le 1$ for all $i = 1, 2, \dots, n$.
 
     Let $\cH=\set{ f_{\Phi} \mid \bignorm{w} \le B', \bignorms{U} \le B }$. Then the Rademacher complexity of $\cH$ is bounded by \[ R_n(\cH) \le 2B B' \sqrt{\frac {m} {n}} \]
     Imagine we use a two-layer neural network to classify MNIST digits. If we use a network with $m$ neurons. This result says that the Rademacher complexity scales with the operator norm of the first layer weights and the second layer weights.
@@ -539,7 +539,7 @@ Recall that $\hat h_{\erm}$ is the empirical risk minimizer (ERM), $h^{\star}$ i
 
 
 \begin{example}[Interpreting $G_n$ for linear predictors]
-    Let $\cH = \set{ x \mapsto \inner{w}{x} : \bignorm{w}2 \le B }$ and assume the loss $\ell(h(x),y)$ is bounded.
+    Let $\cH = \set{ x \mapsto \inner{w}{x} : \bignorm{w}_2 \le B }$ and assume the loss $\ell(h(x),y)$ is bounded.
     For a fixed hypothesis $h$, the quantity $L(h)-\hat L(h)$ measures how much the empirical risk underestimates the true risk.
     The supremum in $G_n$ searches for the {worst-case hypothesis} whose empirical performance looks overly optimistic.
     Geometrically, $G_n$ quantifies how well the training data fits noise. If there exists a direction $w$ such that the correlation between $w$ and data align on the sample but not in expectation, then $G_n$ will be large.
@@ -552,7 +552,7 @@ Recall that $\hat h_{\erm}$ is the empirical risk minimizer (ERM), $h^{\star}$ i
 
 \paragraph{Boundedness:}
 \begin{align*}
-    R_n(\cH) \le \max_{h\in \cH} \max_{x, y} \ell(h(x), y)
+    R_n(\cA) \le \max_{h\in \cH} \max_{x, y} \ell(h(x), y)
 \end{align*}
 This only shows that the Rademacher complexity is bounded by some constant. Usually, we'd like to show it goes to zero as $n$ goes to infinity.
 
@@ -560,7 +560,7 @@ This only shows that the Rademacher complexity is bounded by some constant. Usua
 
 This is because we now take the supreme over a larger set, hence $R_n$ increases.
 
-\paragraph{Scaling:} $R_n(c\cdot \cH) = c\cdot R_n(\cH)$.
+\paragraph{Scaling:} $R_n(c\cdot \cH) = c\cdot R_n(\cH)$. Multiplying the functions within $\cH$ by a fixed constant $c > 0$ increases the Rademacher complexity of $\cH$ by a factor of $c$.
 
 \paragraph{Lipschitz composition:} Suppose $\phi$ is a Lipschitz-continuous function, bounded by some constant $c_{\phi}$. Recall a function is Lipschitz-continuous if changing $x$ only changes the function value by $c_{\phi}$ times.  In addition, $\phi(0) = 0$.
 
@@ -730,7 +730,7 @@ Then, we will go through several examples where the function class is infinite.
     where $Z_i = (x_i, y_i)$ denotes an input data sample.
     Then, the empirical Rademacher complexity is bounded by:
     \begin{align}
-        \hat{R}_n(F) \le \sqrt{ \frac {2M^2 \log(\abs{\cH})} n } \label{eq_emp_massart}
+        \hat{R}_n(\cH) \le \sqrt{ \frac {2M^2 \log(\abs{\cH})} n } \label{eq_emp_massart}
     \end{align}
     %Notice that if we combine the above result \eqref{eq_emp_massart} with the Rademacher complexity-based generalization bound of equation \eqref{eq_rade_bound}, we recover the result in equation \eqref{eq_finite_real}.
 \end{mdframed}
@@ -777,8 +777,8 @@ We can apply the above result along with \eqref{eq_rade_bound} to derive the res
 \subsubsection{Norm-constrained linear models}
 
 The next two examples involve learning a linear model from a norm-bounded hypothesis space.
-The first example applies to Ridge regression, for instance, training models with weight decay.
-The second example applies to LASSO regression, i.e., training with $\ell_1$-regularization instead.
+The first example applies to linear regression with $\ell_2$-norm constraints, for instance, training models with weight decay.
+The second example applies to linear regression with $\ell_1$-norm constraints, i.e., training with $\ell_1$-regularization.
 Next, we'll derive the Rademacher complexity of these two examples.
 
 \begin{proof}[Proof of Example \ref{ex_rad_l2}]
@@ -798,10 +798,10 @@ Next, we'll derive the Rademacher complexity of these two examples.
     \end{align*}
 \end{proof}
 
-\begin{example}[Rademacher complexity of $\ell_1$ balls]
+\begin{example}[Rademacher complexity of $\ell_1$-norm constrained balls]
 In some applications, we have a finite but large set of features, and we believe that only a small subset of them are relevant to our task.
 For such applications, $\ell_1$-regularization has proven to be a working strategy (e.g., pruning, compression).
-Assume that the entries of the input vector are bounded from above by some constant $C > 0$: $\max_{j=1}^d z_i[j] \le C$, for $i = 1, 2, \dots, n$.
+Assume that the entries of the input vector are bounded from above by some constant $C > 0$: $\max_{j=1}^d z_{i, j} \le C$, for $i = 1, 2, \dots, n$.
 Let $\cH = \set{z \rightarrow \inner{w}{z} \mid \bignorm{w}_1 \le B}$ be a set of linear functions.
 Then, the Rademacher complexity of $\cH$ is bounded as follows
 \begin{align*}
@@ -814,10 +814,10 @@ The key idea is that the $\ell_1$ ball is the convex hull of $2d$ weight vectors
 \[ W = \set{Be_1, -Be_1, Be_2, -Be_2, \dots, Be_d, -Be_d} \]
 Since the Rademacher complexity of this class is equal to the Rademacher complexity of its convex hull, we just look at the finite class $W$ since
 \[ R_n(\cH) = \ex{\sup_{w\in W} \frac 1 n \sum_{i=1}^n \sigma_i \inner{w}{z_i}} \]
-Since $W$ is a finite set, we can apply Massart's finite lemma (see \eqref{eq_emp_massart}).
+Since $W$ is a finite set, we can apply Massart's finite lemma (see equation \eqref{eq_emp_massart}).
 In order to do so, we shall first check the moment condition:
 \[ \frac 1 n \sum_{i=1}^n (\sigma_i \inner{w}{z_i})^2 \le \bignorm{w}_1^2 \cdot \bignorm{z}_{\infty}^2 = B^2 \cdot C^2. \]
-Thus, by result \eqref{eq_emp_massart}, we now get that
+Thus, by equation \eqref{eq_emp_massart}, we now get that
 \[ \hat R_n(\cH) \le \sqrt{\frac {2B^2 C^2 \log(2d)} n}. \]
 \end{proof}
 
@@ -947,8 +947,8 @@ Hence, after switching the order of the sum, we can get
     However, as we saw from the previous slide, some neurons turn out to be quite small in the experiments, resulting in a small path norm even as $m$ increases.
 \end{remark}
 
-\iffalse
-\subsection{Matrix completion (Lecture 6)}
+
+\subsection{Matrix completion (Lecture 8)}
 
 Suppose you are asked to build a recommendation system. This system is used to predict the review rating of a movie.
 Related examples: Book reviews on Amazon and music recommendations on YouTube.
@@ -1034,4 +1034,4 @@ Here we'll use the claim that
 Showing this result requires using some facts related to the spectrum of random matrices, we'll cover this result at a later point in class.
 In summary, we have thus shown that
 \[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}} \]
-\fi
+%\fi
