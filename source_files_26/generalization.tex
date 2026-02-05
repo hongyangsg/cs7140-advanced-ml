@@ -950,49 +950,54 @@ Hence, after switching the order of the sum, we can get
 
 \subsection{Matrix completion (Lecture 8)}
 
-Suppose you are asked to build a recommendation system. This system is used to predict the review rating of a movie.
-Related examples: Book reviews on Amazon and music recommendations on YouTube.
+Suppose you are working on a recommendation system. The goal of this system is to predict the review ratings of a movie or a music database on YouTube or on Netflix.
+This problem can be formulated as a matrix completion problem.
+Suppose there is an unknown matrix $M \in \real^{d_1 \times d_2}$, corresponding to the true ratings in the database.
+From the database, you see a subset of the entire matrix, denoted by $\widehat M$, such that $\widehat M_{i, j} = M_{i, j}$ for $(i, j) \in \Omega$ for some observed set of indices $\Omega$, and $\widehat M_{i, j} = 0$ otherwise.
+Given the partially-observed data matrix $\widehat M$, how can we recover the unobserved entries outside $\Omega$ and impute the full matrix $M$?
 
-\paragraph{Rank-constrained minimization:}
-Given an input array $M$, find $X$ as close to $M$ as possible on the observed entries, while subject to a (low) rank constraint:
+A natural, first solution is to use rank-constrained minimization.
+Given an input array $\widehat M$, we seek to find $X$ as close to $\widehat M$ as possible on $\Omega$, subject to a rank constraint:
 \begin{align*}
     \min_{X} &~~ \sum_{(i, j) \in \Omega}  (X_{i, j} - M_{i, j})^2 \\
     \mbox{s.t.} &~~~~ \text{rank}(X) = r
 \end{align*}
 
-\paragraph{Nuclear norm relaxation:} The rank constraint makes the problem non-convex, search space increases at a combinatorial rate (although good algorithms exist).
-Instead, we could relax the rank constraint into a nuclear norm constraint: given a matrix $X$, let $\bignorm{X}_{\star} = \sum_{j} \lambda_j(X)$---the sum of all the singular values of $X$.
-One could show that $\bignorm{X}_{\star}$ is convex in $X$; this is called the ``nuclear'' norm of $X$.\footnote{See \url{https://en.wikipedia.org/wiki/Matrix_norm}}
-Instead, solve the following, which is convex in $X$:
+However, the rank constraint leads to a non-convex problem, resulting in a search space whose complexity increases exponentially.
+Instead, consider relaxing the rank constraint into a nuclear norm constraint.
+Given a matrix $X \subset \real^{d_1 \times d_2}$, let $\bignorm{X}_{\star} = \sum_{j=1}^{\min(d_1, d_2)} \lambda_j(X)$, which is the sum of all the singular values of $X$.
+One can show that $\bignorm{X}_{\star}$ is a convex operator in $X$. This is called the nuclear norm of $X$. %\footnote{See \url{https://en.wikipedia.org/wiki/Matrix_norm}}
+Instead, consider the following nuclear norm constrained optimization:
 \begin{align*}
     \min_{X} &~~ \sum_{(i, j) \in \Omega} (X_{i, j} - M_{i, j})^2 \\
-    \mbox{s.t.} &~~~ \bignorm{X}_{\star} \le d r,
+    \mbox{s.t.} &~~~ \bignorm{X}_{\star} \le \alpha,
 \end{align*}
-where we may replace $dr$ with another parameter as needed.
+for some hyperparameter $\alpha > 0$.
 
-\paragraph{Low-rank factorization:} An alternative way to formulate the above is by writing it as a convex optimization problem:
-\[ \min \sum_{(i, j) \in \Omega} (X_{i, j} - M_{i, j})^2 + \lambda \bignorm{X}_{\star} \]
-This is a semi-definite program (SDP), which is convex in $X$.
-Instead, we may consider the re-parametrized optimization problem:
-\[ \min_{U, V} \sum_{(i, j) \in \Omega} (U_i^{\top} V_j - M_{i, j})^2, \]
-where $U_i, V_j$ are both $r$-dimensional vectors, for any $i, j$.
-Put together, $U = [U_1, U_2, \dots, U_{d_1}]$, $V = [V_1, V_2, \dots, V_{d_2}]$ are both rank-$r$ matrices.
-
-\paragraph{How well does nuclear norm minimization work?}
+{How well does nuclear norm minimization work?}
 Imagine we want to recover an unknown low-rank matrix $M \in \real^{d_1 \times d_2}$.
 We observe $m$ entries from $M$ uniformly at random.
 Then, given another matrix $X$, we may define the mean squared recovery error as
 \[ \frac 1 {d_1} \frac 1 {d_2} \sum_{i=1}^{d_1} \sum_{j=1}^{d_2} (X_{i, j} - M_{i, j})^2 \]
 Without further assumptions, we would need to see the entire matrix:
-\begin{itemize}
-    \item Imagine the unknown matrix only has an extremely large entry but remains nonzero elsewhere
-    
-    \item Without sampling this entry, we are only observing zeros
-\end{itemize}
+Imagine the unknown matrix only has an extremely large entry but remains nonzero elsewhere.
+Without sampling this entry, we are only observing zeros.
 Therefore, we shall assume that $M$ is bounded in all entries---this is a reasonable assumption for modeling many applications (e.g., movie ratings).
 In general, one may assume that $M$ is incoherent (meaning that the row norms of the low-rank factors are bounded at the order of $O(n^{-1})$).
 
-\paragraph{Recovery result:} Let $d r$ be the upper bound we place on the matrix in the nuclear norm minimization program. Let $\hat M$ denote the output of the program. Then, the recovery error of $\hat M$ is at most:
+\begin{remark}[Rank-constrained matrix factorization]
+    An alternative way to formulate the above is by writing it as a convex optimization problem:
+    \[ \min_{X \in \real^{d_1 \times d_2}} \sum_{(i, j) \in \Omega} (X_{i, j} - M_{i, j})^2 + \lambda \bignorm{X}_{\star} \]
+    This is a semi-definite program (SDP), which is convex in $X$.
+    Instead, we may consider the re-parametrized optimization problem:
+    \[ \min_{U\in\real^{d_1\times r}, V\in\real^{d_2 \times r}} \sum_{(i, j) \in \Omega} (U_i^{\top} V_j - M_{i, j})^2, \]
+    where $U_i, V_j$ are both $r$-dimensional vectors, for any $i, j$.
+    Put together, $U = [U_1, U_2, \dots, U_{d_1}]$, $V = [V_1, V_2, \dots, V_{d_2}]$ are both rank-$r$ matrices.
+\end{remark}
+
+\subsubsection{Recovery guarantees}
+
+Let $d r$ be the upper bound we place on the matrix in the nuclear norm minimization program. Let $\hat M$ denote the output of the program. Then, the recovery error of $\hat M$ is at most:
 \[ 2r \sqrt{\frac {\log (d)} {m d}}, \]
 where $d = \max(d_1, d_2)$.
 For example, if we want the test error less than $\epsilon$, then the number of samples needs to be at least
@@ -1034,4 +1039,5 @@ Here we'll use the claim that
 Showing this result requires using some facts related to the spectrum of random matrices, we'll cover this result at a later point in class.
 In summary, we have thus shown that
 \[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}} \]
+
 %\fi
