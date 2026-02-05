@@ -271,8 +271,8 @@ Since the $X_i$'s are independent from each other, we take the product of the $n
 Based on this result, we now apply Markov's inequality: for any $t > 0$, we have
 \begin{align*}
     \Pr[X \ge (1 + \delta) \mu] &= \Pr[e^{tX} \ge e^{t(1 + \delta) \mu}] \\
-    &\le \frac {\ex{e^{tX}}} {e^{t(1 + \delta) \mu}}
-    \le \frac {e^{(e^t - 1) \mu}} {e^{t(1 + \delta) \mu}}
+    &\le \frac {\ex{e^{tX}}} {e^{t(1 + \delta) \mu}} \\
+    &\le \frac {e^{(e^t - 1) \mu}} {e^{t(1 + \delta) \mu}}
 \end{align*}
 For any $\delta >0$, we can set $t = \ln(1 + \delta) > 0$ to get
 \[ \Pr[X \ge (1 + \delta) \mu] \le \left( \frac {e^{\delta}} {(1 + \delta)^{1 + \delta}} \right)^{\mu} \]
@@ -585,7 +585,7 @@ The proof involves three steps:
     \item Use McDiarmid's inequality, which is essentially a concentration result for functions of independent random variables.
     \item Show that the Rademacher complexity upper bounds the excess risk. We've seen this step from Section \ref{subsubsec_motiv}.
 \end{itemize}
-In more detail, recall that $G_n = \sup_{h\in\cH} L(h) - \hat L(h)$.
+In more detail, recall that \[ G_n = \sup_{h\in\cH} L(h) - \hat L(h). \]
 Our first claim is to show that $G_n$ is close to $\ex{G_n}$:
 \begin{align}
     \Pr\left[ G_n \ge \ex{G_n} + \epsilon \right] \le \exp(-2n\epsilon^2) \label{eq_gn_dev}
@@ -615,9 +615,8 @@ In order to complete this result, we'll use a tool called McDiarmid’s inequali
     \begin{align}\label{eq_mcdiarmid} \Pr\left[ \bigabs{f(X_1, X_2, \dots, X_n) - \ex{f(X_1, X_2, \dots, X_n)}} \ge \epsilon \right] \le \exp \left( - \frac {2 \epsilon^2} {\sum_{i=1}^n c_i^2} \right) \end{align}
 \end{mdframed}
 
-\begin{remark}
-McDiarmid’s inequality generalizes Hoeffding’s inequality.
-Let the function $f(x_1, x_2, \dots, x_n) = \frac 1 n \sum_{i=1}^n x_i$ be the empirical mean.
+\begin{remark}[McDiarmid’s inequality generalizes Hoeffding’s inequality]
+Let the function \[ f(x_1, x_2, \dots, x_n) = \frac 1 n \sum_{i=1}^n x_i \] be the empirical mean.
 Suppose every $x_i$ and $x'_i$ are bounded from above by one.
 Then, changing $x_i$ to $x'_i$ changes the function value by at most $\frac 2 n$, leading to $c_i = \frac 2 n$ for all $i = 1, 2, \dots, n$.
 Hence, the sum of $c_i^2$ is equal to $\frac 4 {n}$.
@@ -629,9 +628,9 @@ As long as this function is not too sensitive to perturbations in one coordinate
 
 \begin{proof}[Proof of equation \eqref{eq_mcdiarmid}]
 Recall the definition of a martingale sequence
-A sequence of random variables $Z_0, Z_1, \dots, Z_n$ is a martingale sequence with respect to another sequence of random variables $X_1, X_2, \dots, X_n$ if and only if $Z_i$ only depends on $X_{1:i}$ and $\ex{Z_i | X_{1:i-1}} = Z_{i-1}$.
+A sequence of random variables $Z_0, Z_1, \dots, Z_n$ is a martingale sequence with respect to another sequence of random variables $X_1, X_2, \dots, X_n$ if and only if $Z_i$ only depends on $X_{1:i}$ and \[ \ex{Z_i | X_{1:i-1}} = Z_{i-1}. \]
 
-For a martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that $\ex{Z_i | Z_{< i}} = 0$ and $\abs{Z_i} \le c_i$. Then with probability at least $1 - \delta$,
+For a martingale sequence, we have the concentration because of Azuma-Hoeffding’s inequality: Suppose $Z_{1:t}$ is a martingale sequence such that \[ \ex{Z_i | Z_{< i}} = 0, \text{ and } \abs{Z_i} \le c_i. \] Then with probability at least $1 - \delta$,
     \begin{align}\label{eq_azuma}
         \sum_{i = 1}^n Z_i \le \sqrt{2\Big(\sum_{i=1}^n c_i^2\Big) \log(\delta^{-1})}
     \end{align}
@@ -684,7 +683,7 @@ Thus, we have verified that the sequence $D_1, D_2, \dots, D_n$ is bounded.
 In addition, we can check that they are a Martingale sequence based on the properties listed above.
 
 Having checked through McDiarmid's inequality, it remains to show that $G_n$ satisfies the bounded difference condition.
-Recall that $G_n = \sup_{h\in \cH} L(h) - \hat L(h)$.
+Recall that \[ G_n = \sup_{h\in \cH} L(h) - \hat L(h). \]
 This quantity naturally arises as we derive a uniform convergence claim.
 Recall that $\hat L$ is the empirical risk.
 Consider changing $Z_i$ to $Z'_i$ in $G_n$, we’d like to bound the difference
@@ -697,7 +696,8 @@ Taking supreme cannot increase the difference.
 
 We now put all the pieces together to complete the proof of equation \eqref{eq_rade_bound}.
 \begin{proof}[Proof of equation \eqref{eq_rade_bound}] 
-    We’d like to show that, for $\epsilon = 4R_n(\cA) + \sqrt{\frac {2\log(2\delta^{-1})} n}$,
+    We’d like to show that, for \[ \epsilon = 4R_n(\cA) + \sqrt{\frac {2\log(2\delta^{-1})} n}, \]
+    we have
         \[ \Pr[L(\hat h_{\erm}) - L(h^{\star}) \ge \epsilon ] \le \Pr\left[ \sup_{h\in\cH} \bigabs{L(h) - \hat L(h)} \ge \frac {\epsilon} 2\right] \le \delta \] 
     The latter reduces to showing that
         \[ \Pr\left[\sup_{h \in \cH} \bigabs{L(h) - \hat L(h)} \ge \frac {\epsilon} 2\right] \le \Pr[G_n \ge \frac {\epsilon} 2 ] + \Pr[G'_n \ge \frac {\epsilon} 2]  \]
@@ -706,7 +706,7 @@ We now put all the pieces together to complete the proof of equation \eqref{eq_r
             \Pr[G_n \ge \frac{\epsilon} 2 ] &\le \Pr\left[G_n - \ex{G_n} \ge \sqrt{\frac {\log(2\delta^{-1})} {2n}}\right]\\
             &\le \exp\left( -2n \left(\frac {\log(2\delta^{-1})} {2n}\right)\right) = \frac {\delta} 2
         \end{align*}
-    The first line is because by \eqref{eq_Rn_rad}, $\ex{G_n} \le 2 R_n(\cA)$.
+    The first line is because by equation \eqref{eq_Rn_rad}, \[ \ex{G_n} \le 2 R_n(\cA). \]
     A similar proof applies to show that $\Pr[G'_n \ge \frac {\epsilon} 2] \le \frac {\delta} 2$.
 \end{proof}
 
@@ -885,22 +885,24 @@ Proof sketch:
 \subsection{Learning two-layer neural networks (Lecture 7)}
 
 \begin{proof}[Proof of Example \ref{ex_rad_nn2}]
-Use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors; Let’s first write the Rademacher complexity
+For this result, we will use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors.
+Let us first write the Rademacher complexity as
 \begin{align*}
     R_n(\cH) = \exarg{\sigma_{1:n}}{ \sup_{\Phi\in\cH} \frac 1 n \sum_{i=1}^n \sigma_i w^{\top} \phi(Ux) }
 \end{align*}
-Let’s first deal with the supremum over the second layer weight $w$ by setting its direction to be the same as the other vector
+We first deal with the supremum over the second layer weight $w$ by setting its direction to be the same as the other vector
 \[ R_n(\cH) \le B' \cdot \exarg{\sigma_{1:n}} { \sup_{\Phi\in\cH} \bignorms{\frac 1 n \sum_{i=1}^n \sigma_i \phi(Ux_i) } } \]
-Next, because there are $m$ neurons. Hence (by Cauchy-Schwartz inequality), we reduce the above to less than
+Next, because there are $m$ neurons. Hence, by Cauchy-Schwartz inequality, we reduce the above to less than
 \[ B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} \bigabs{ \frac 1 n \sum_{i=1}^n \sigma_i \phi(u^{\top} x_i)} } \]
-The trick here is that since the operator norm of the first layer weight $U$ is bounded by $B$, the norm of every row of $U$ (or neuron) is also bounded by $B$.
-It remains to deal with the above.
-Here, we can use our composition property: $\phi$ is $1$-Lipschitz continuous.
-Furthermore, the absolute value can be divided into two parts. Hence, the above is at most
-\[ 2B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} { \frac 1 n \sum_{i=1}^n \sigma_i u^{\top} x_i} } \]
-To finish the proof, we invoke our Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.
+The idea here is that since the operator norm of the first layer weight $U$ is bounded by $B$, the norm of every row of $U$ is also bounded by $B$.
+%It remains to deal with the above.
+Here, we can use the composition property: $\phi$ is $1$-Lipschitz continuous.
+Furthermore, the absolute value can be bounded by adding a factor of two.
+Hence, the above is at most
+\[ 2B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} { \frac 1 n \sum_{i=1}^n \sigma_i u^{\top} x_i} }. \]
+To finish the proof, we invoke the Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.
 
-Provided with the Rademacher complexity of two-layer neural nets, we can get a generalization bound for neural networks, adding an extra factor of $\sqrt{\log(\delta^{-1})/n}$.
+Provided with the Rademacher complexity of two-layer neural nets, we can get a generalization bound for neural networks, with an additional error term of $\sqrt{\log(\delta^{-1})/n}$.
 \end{proof}
 
 %\paragraph{Second result:} 
@@ -918,25 +920,24 @@ Here's the result from training a two-layer neural net on MNIST \citep{neyshabur
         \centering
         \includegraphics[width=0.75\linewidth]{figures/pathnorm.png}
     \end{minipage}
-    \caption{Vary the number of neurons $m$ in a two-layer neural net. Path norm scales nicely with the test error.}
-    \label{fig:enter-label}
+    \caption{Vary the number of neurons $m$ in a two-layer neural net. Path norm scales nicely with the test error. Results taken from \citet{neyshabur2017exploring}.}\label{fig:enter-label}
 \end{figure}
 
 We’ll show a generalization bound that does not depend on the number of hidden units $m$ using the path norm $P(w, U) = \sum_{i=1}^m \abs{w_i} \cdot \bignorm{u_i}$, where $u_i$ is the $i$-th row of $U$.
 Let $\cH = \set{f_{\Phi} \mid P(w, U) \le B}$. Then, the Rademacher complexity of $\cH$ is bounded as follows
-\[ R_n(\cH) \le B \sqrt{\frac 1 n}. \]
+\[ R_n(\cH) \le \frac {2B} {\sqrt{n}}. \]
 
 \begin{proof}
 Let’s first write the Rademacher complexity.
 Recall that $u_i$ is the $i$-th row of $U$. We expand out the Rademacher complexity using
 \[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \phi(u_j^{\top} x_i) \]
-Let $\bar u_j = u_j / \bignorm{u_j}$. Because ReLU activation is $1$-Homogeneous, meaning that $\phi(c x) = c \phi(x)$, hence
+Let $\bar u_j = u_j / \bignorm{u_j}$. Because ReLU activation is $1$-homogeneous, meaning that $\phi(c x) = c\cdot \phi(x)$. Hence,
 \[ w^{\top} \phi(Ux_i) = \sum_{j=1}^m w_j \bignorm{u_j} \phi\big(\bar u_j^{\top} x_i\big) \]
 We apply this expansion to the Rademacher complexity
-\[ R_n(\cH) = \ex{\sup_{\Phi} \frac 1 n \sum_{i=1}^n \sigma_i \left(\sum_{j=1}^m w_j \bignorm{u_j} \phi(\bar u_j^{\top} x_i)\right). } \]
+\[ R_n(\cH) = \ex{\sup_{\Phi} \frac 1 n \sum_{i=1}^n \sigma_i \left(\sum_{j=1}^m w_j \bignorm{u_j} \phi(\bar u_j^{\top} x_i)\right) } . \]
 Taking the supremum over $\Phi$ means that we’ll maximize the path norm above!
 Hence, after switching the order of the sum, we can get
-\[ R_n(\cH) \le B \cdot \ex{\max_{1\le j\le m} \bigabs{\frac 1 n \sum_{i=1}^n \sigma_i \phi(\bar u_j^{\top} x_i)}} \le 2B \sqrt{\frac 1 n}. \]
+\[ R_n(\cH) \le B \cdot \ex{\max_{1\le j\le m} \bigabs{\frac 1 n \sum_{i=1}^n \sigma_i \phi(\bar u_j^{\top} x_i)}} \le \frac{2B} {\sqrt{ n}}. \]
 \end{proof}
 
 
@@ -968,17 +969,19 @@ Instead, consider relaxing the rank constraint into a nuclear norm constraint.
 Given a matrix $X \subset \real^{d_1 \times d_2}$, let $\bignorm{X}_{\star} = \sum_{j=1}^{\min(d_1, d_2)} \lambda_j(X)$, which is the sum of all the singular values of $X$.
 One can show that $\bignorm{X}_{\star}$ is a convex operator in $X$. This is called the nuclear norm of $X$. %\footnote{See \url{https://en.wikipedia.org/wiki/Matrix_norm}}
 Instead, consider the following nuclear norm constrained optimization:
-\begin{align*}
-    \min_{X} &~~ \sum_{(i, j) \in \Omega} (X_{i, j} - M_{i, j})^2 \\
-    \mbox{s.t.} &~~~ \bignorm{X}_{\star} \le \alpha,
-\end{align*}
+\begin{align}
+    \min_{X} &~~ \sum_{(i, j) \in \Omega} (X_{i, j} - M_{i, j})^2 \label{eq_nuclear} \\
+    \mbox{s.t.} &~~~ \bignorm{X}_{\star} \le \alpha, \nonumber
+\end{align}
 for some hyperparameter $\alpha > 0$.
 
 {How well does nuclear norm minimization work?}
 Imagine we want to recover an unknown low-rank matrix $M \in \real^{d_1 \times d_2}$.
 We observe $m$ entries from $M$ uniformly at random.
 Then, given another matrix $X$, we may define the mean squared recovery error as
-\[ \frac 1 {d_1} \frac 1 {d_2} \sum_{i=1}^{d_1} \sum_{j=1}^{d_2} (X_{i, j} - M_{i, j})^2 \]
+\begin{align}
+    \frac 1 {d_1} \frac 1 {d_2} \sum_{i=1}^{d_1} \sum_{j=1}^{d_2} (X_{i, j} - M_{i, j})^2. \label{eq_mc_mse}
+\end{align}
 Without further assumptions, we would need to see the entire matrix:
 Imagine the unknown matrix only has an extremely large entry but remains nonzero elsewhere.
 Without sampling this entry, we are only observing zeros.
@@ -997,47 +1000,50 @@ In general, one may assume that $M$ is incoherent (meaning that the row norms of
 
 \subsubsection{Recovery guarantees}
 
-Let $d r$ be the upper bound we place on the matrix in the nuclear norm minimization program. Let $\hat M$ denote the output of the program. Then, the recovery error of $\hat M$ is at most:
+Let $\alpha = d r$ and denote by $M^{\star}$ the output of program \eqref{eq_nuclear}.
+We will show that the recovery error of $M^{\star}$ given by equation \eqref{eq_mc_mse} is at most:
 \[ 2r \sqrt{\frac {\log (d)} {m d}}, \]
 where $d = \max(d_1, d_2)$.
 For example, if we want the test error less than $\epsilon$, then the number of samples needs to be at least
-\[ m \ge \frac {d r^2} { \epsilon^2 \log (d) } \]
-We're going to use Rademacher complexity to tackle this. Here we can think that nuclear norm minimization constrains how large the matrix can be.
-Thus, we define the hypothesis class to be the set of nuclear norm bounded and entrywise bounded matrices as follows:
-\[ \cH = \bigset{ X \in \real^{d_1 \times d_2} \mid \bignormnuc{X} \le d r, \bignorm{X}_{\infty} \le 1} \]
-Let $\Omega\subseteq[d_1]\times[d_2]$ be the indices of the set of observed entries.
-Let $X_{\Omega}$ denote the observed matrix that pads zero for the unobserved entries.
-Then, we define the Rademacher complexity of $\cH$ as
-\[ R_n(\cH) = \exarg{\Omega, \sigma_{1:m}}{\sup_{X\in\cH} \frac 1 m \sum_{(i, j) \in \Omega}  \sigma_{i, j} \cdot \bigabs{X_{i, j} - M_{i, j}}} \]
+\[ m \ge \frac {d r^2} { \epsilon^2 \log (d) }. \]
+We will use Rademacher complexity to establish this result. %Here we can think that nuclear norm minimization constrains how large the matrix can be.
+Define the hypothesis class to be the set of nuclear norm bounded and entrywise bounded matrices as follows:
+\[ \cH = \bigset{ X \in \real^{d_1 \times d_2} \big| \bignormnuc{X} \le \alpha, \bignorm{X}_{\infty} \le 1} \]
+%Let $\Omega\subseteq[d_1]\times[d_2]$ be the indices of the set of observed entries.
+%Let $X_{\Omega}$ denote the observed matrix that pads zero for the unobserved entries.
+Then, define the Rademacher complexity of $\cH$ as
+\[ R_n(\cH) = \exarg{\Omega, \sigma_{1:m}}{\sup_{X\in\cH} \frac 1 m \sum_{(i, j) \in \Omega}  \sigma_{i, j} \cdot \bigabs{X_{i, j} - M_{i, j}}}. \]
 
-Here we're going to use the following result.
+Here we use the following result.
 Suppose $\cH$ is a set of matrices whose nuclear norm is bounded by $C$:
-\[ \cH = \set{X\in\real^{d_1\times d_2} \mid \bignormnuc{X} \le C} \]
+\[ \cH = \set{X\in\real^{d_1\times d_2} \big| \bignormnuc{X} \le C} \]
 Then, the Rademacher complexity of nuclear norm bounded matrices is at most
 \begin{align}
     R_n(\cH) = \exarg{\Omega}{ \sup_{X\in\cH} \frac 1 m \sum_{ (i, j) \in \Omega } \sigma_{i, j} \bigabs{ X_{i, j} - M_{i, j} } } \le 2 C \sqrt{\frac {\log d} {m d}} \label{eq_nuc_norm_rad}
 \end{align}
-Recall our result from \eqref{eq_rade_bound}, if $m \ge d  r^2 \log (d\delta^{-1}) / \epsilon^2$, then the above Rademacher complexity is at most $\epsilon$.
-Therefore, based on \eqref{eq_rade_bound}, we could say that with probability at least $1 - \delta$, the recovery error of the minimizer must be at most $O(\epsilon)$.
+Recall our result from equation \eqref{eq_rade_bound}, if $m \ge d  r^2 \log (d\delta^{-1}) / \epsilon^2$, then the above Rademacher complexity is at most $\epsilon$ for $\alpha = d r$.
+Based on equation \eqref{eq_rade_bound}, with probability at least $1 - \delta$, the recovery error of the minimizer must be at most $O(\epsilon)$.
 
-It remains to show that \eqref{eq_nuc_norm_rad} is true.
-By symmetry, the absolute function inside $R_n(\cH)$ can be skipped:
+It remains to show that equation \eqref{eq_nuc_norm_rad} is true.
+By symmetry, the absolute function inside $R_n(\cH)$ can be removed without changing the value of $R_n(\cH)$:
 \begin{align*}
     R_n(\cH) = \ex{\sup_{X\in\cH} \frac 1 m \sum_{(i, j) \in \Omega} \sigma_{i, j} (X_{i, j} - M_{i, j})}
 \end{align*}
 Let us introduce a zero-one matrix $\Sigma$ such that $\Sigma_{i, j} = \sigma_{i, j}$ if $(i, j) \in \Omega$, and $\Sigma_{i, j} = 0$ otherwise.
 Hence, the above is equal to
-\begin{align*}
+\begin{align}
     \exarg{\Omega, \sigma_{1:n}}{\sup_{X\in\cH} \frac 1 m \inner{\Sigma}{ X - M }}
-    &\le \ex{\sup_{X\in\cH} \frac 1 m \bignorms{\Sigma} \cdot \bignormnuc{X - M}} \\
-    &\le \frac {2C} {m} \ex{\bignorms{\Sigma}}
-\end{align*}
+    &\le \ex{\sup_{X\in\cH} \frac 1 m \bignorms{\Sigma} \cdot \bignormnuc{X - M}} \nonumber \\
+    &\le \frac {2C} {m} \ex{\bignorms{\Sigma}} \label{eq_sigma}
+\end{align}
 Above we use the fact that both $X, M$ have nuclear norm bounded above by $C$.
 Hence, to finish the proof, we are left to deal with the expectation of $\bignorms{\Sigma}$.
-Here we'll use the claim that
-\[ \ex{\bignorms{\Sigma}} \le \sqrt{ \frac {m \log d} {d}} \]
-Showing this result requires using some facts related to the spectrum of random matrices, we'll cover this result at a later point in class.
-In summary, we have thus shown that
-\[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}} \]
-
+We use the claim that
+\begin{align}
+    \ex{\bignorms{\Sigma}} \le \sqrt{ \frac {m \log d} {d}}. \label{eq_rmt}
+\end{align}
+Plugging this claim back into equation \eqref{eq_sigma}, we have thus shown that
+\[ R_n(\cH) \le 2C \sqrt{\frac {\log(d)} {m d}}. \]
+Showing equation \eqref{eq_rmt} requires using some facts related to the spectrum of random matrices.
+We will consider covering this result at a later point in class.
 %\fi
