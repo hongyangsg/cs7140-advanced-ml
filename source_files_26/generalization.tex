@@ -1,4 +1,4 @@
-\section{Generalization theory for supervised prediction}
+\section{Uniform convergence in supervised prediction}
 
 Recall that we have introduced the empirical loss and expected loss of a hypothesis (denoted by $L(h)$ and $\hat L(h)$) for some $h$ in a hypothesis class $\cH$.
 Suppose we minimize the empirical risk to get $\hat h_{\erm}$. Two questions:
@@ -882,7 +882,7 @@ Proof sketch:
 \end{itemize}
 \fi
 
-\subsection{Learning two-layer neural networks (Lecture 7)}
+\subsubsection{Learning two-layer neural networks}
 
 \begin{proof}[Proof of Example \ref{ex_rad_nn2}]
 For this result, we will use composition property of Rademacher complexity and result for $\ell_2$-norm bounded linear predictors.
@@ -896,8 +896,9 @@ Next, because there are $m$ neurons. Hence, by Cauchy-Schwartz inequality, we re
 \[ B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} \bigabs{ \frac 1 n \sum_{i=1}^n \sigma_i \phi(u^{\top} x_i)} } \]
 The idea here is that since the operator norm of the first layer weight $U$ is bounded by $B$, the norm of every row of $U$ is also bounded by $B$.
 %It remains to deal with the above.
-Here, we can use the composition property: $\phi$ is $1$-Lipschitz continuous.
 Furthermore, the absolute value can be bounded by adding a factor of two.
+
+Next, we can use the composition property: $\phi$ is $1$-Lipschitz continuous.
 Hence, the above is at most
 \[ 2B' \cdot \sqrt m \cdot \ex{ \sup_{\bignorm{u} \le B} { \frac 1 n \sum_{i=1}^n \sigma_i u^{\top} x_i} }. \]
 To finish the proof, we invoke the Rademacher complexity bound for $\ell_2$-norm bounded linear predictors, to get that the above is at most $2B' B \sqrt{m / n}$.

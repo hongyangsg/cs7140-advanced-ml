@@ -121,7 +121,8 @@ In this problem, you will work on implementing and comparing several transfer le
     Implement both the single-task or ordinary least squares (OLS) estimator and the hard transfer or hard parameter sharing (HPS) estimator.
     Draw a plot by varying $\delta$, and compare the test losses of OLS and HPS estimators on task two.
 
-    \item (10 points) Next, implement the soft transfer or soft parameter sharing (SPS) estimator with an additional regularization penalty placed on $z = \beta^{(1)} - \beta^{(2)}$ in the objective function.
+    \item (10 points) Next, implement the soft transfer or soft parameter sharing (SPS) estimator with an additional regularization penalty placed on $z$ in the objective function, which determines the difference between models that we will use for task $1$ vs. task $2$.
+    In particular, $z$ is a variable that you will optimize during the training process.
     Adjust the regularization hyper-parameter $\lambda$ associated with the regularization penalty, and report the best test loss from varying $\lambda$.
 
     \item (10 points) Finally, draw a plot by varying $\delta$ as in part 2, and compare the test losses of HPS and SPS estimators on task two.
