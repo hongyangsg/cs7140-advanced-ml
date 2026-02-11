@@ -13,7 +13,7 @@ In particular, we shall begin by establishing the folklore intuition that the le
 This kind of folklore is especially intriguing in the context of deep networks, as these models have millions (and now billions) of parameters.
 However, this high complexity clearly does not explain/corroborate with the empirical results we typically see with supervised fine-tuning and in-context learning.
 
-\subsection{Neural tangent kernels (Lecture 9)}
+\subsection{Neural tangent kernels (Lecture 10)}
 
 %\subsubsection{Basics of kernel methods}
 The performance of a machine learning model breaks down into two parts:
@@ -230,18 +230,18 @@ On the other hand, if the projections are uniform, or aligns with eigenvectors w
 Below, we compare convergence rates of gradient descent between using original labels, random labels, and worst-case labels.
 Data: two classes of MNIST.
 Model: $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
-\todo{add an illustration}
+%\todo{add an illustration}
 
-% \begin{figure}
-%     \centering
-%     \begin{minipage}{0.45\linewidth}
-%         \centering
-%         \includegraphics[width=0.75\linewidth]{figures/randomlabel1.png}    
-%     \end{minipage}\hfill
-%     \begin{minipage}{0.45\linewidth}
-%         \centering
-%         \includegraphics[width=0.75\linewidth]{figures/randomlabel2.png}
-%     \end{minipage}
-%     \caption{Illustration of the loss and the projected values onto the eigenspace.}
-%     \label{fig:ntk_eig}
-% \end{figure}
+\begin{figure}
+    \centering
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{figures/randomlabel1.png}    
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=0.75\linewidth]{figures/randomlabel2.png}
+    \end{minipage}
+    \caption{Illustration of the loss and the projected values onto the eigenspace.}
+    \label{fig:ntk_eig}
+\end{figure}

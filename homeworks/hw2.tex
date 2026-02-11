@@ -1,0 +1,193 @@
+\documentclass[11pt]{article}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{epsfig}
+\def\shownotes{1}
+\usepackage{macro}
+\usepackage{url}
+\usepackage{mdframed}
+\usepackage{hyperref}
+\usepackage[noend,noline]{algorithm2e}
+%\usepackage{enumerate,enumitem}
+\SetEndCharOfAlgoLine{}
+\SetArgSty{}
+\SetKwBlock{Repeat}{repeat}{}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{gray},
+    showstringspaces=false,
+    frame=single,
+    breaklines=true,
+    tabsize=4
+}
+
+\everymath=\expandafter{\the\everymath\displaystyle}
+%%\usepackage{psfig}
+\DeclareMathSizes{24}{24}{24}{24}
+\newcommand{\lecture}[2]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf CS7140: Advanced Machine Learning} \hfill Spring 2026}
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #1  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em Instructor: Ryan Zhang  \hfill Due: #2} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+%\newcommand{\dim}{\textup{dim}}
+
+
+\newcommand*{\diffdchar}{d}    % or {ⅆ}, or {\mathrm{d}}, or whatever standard you’d like to adhere to
+\newcommand*{\dd}{\mathop{\diffdchar\!}}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\newcommand{\E}{\mathbb{E}}
+
+\usepackage{amsmath, amssymb}
+\usepackage{fullpage}
+\pagestyle{empty}
+\def\pp{\par\noindent}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\baselinestretch}{1.2}
+\newcommand{\problem}[1]{ \bigskip \pp \textbf{Problem #1}\par}
+\newcommand{\solution}{\textit{Solution:}\par}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\bbZ}    {\mathbb{Z}}
+\newcommand{\bbQ}    {\mathbb{Q}}
+\newcommand{\bbN}    {\mathbb{N}}
+\newcommand{\bbB}    {\mathbb{B}}
+\newcommand{\bbR}    {\mathbb{R}}
+\newcommand{\bbC}    {\mathbb{C}}
+\newcommand{\calP}   {{\cal{P}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\lecture{Problem Set 2}{\textbf{March 5, 2026, 11:59pm}}
+
+\textbf{Policy:} You should write up the solution independently. You are allowed to use AI agents, but please only use it to look up for references or further results instead of directly completing the homework solutions excessively with the agents.
+%There are up to three late days for all the problem sets and project submissions.
+%After that, the grade depreciates by 20\% for every extra day.
+If you anticipate submitting the homework late, please reach out to the instructor at \texttt{ho.zhang@northeastern.edu}.
+All homework submissions are subject to the Northeastern University \href{https://catalog.northeastern.edu/handbook/policies-regulations/honor-code/}{Honor Code}.
+
+\textbf{Submission:} We will use Gradescope for grading your homework submissions. Please submit your written solutions by logging in to Gradescope through Canvas using your northeastern.edu account.
+For code submission, please print out the code file and attach it to the PDF solution file.
+We strongly recommend that you write up your solution in \LaTeX. For reference, you can find the \LaTeX\ source code of the homework files on \href{https://github.com/hongyangsg/cs7140/tree/main/homeworks}{GitHub}.
+
+When writing down the solution, include as much details as needed in order to understand your answer.
+However, excessively long answers are not encouraged --- After solving the problem, try to identify the main steps and critical points of proof and highlight them.
+
+\newpage
+\paragraph{Problem 1 (20 points)}
+In this problem, you will work on applications of the Chernoff Bound. For each question, be sure to specify which Chernoff bound you use.
+\begin{itemize}
+    \item (5 points) Suppose you are conducting a poll to forecast the upcoming election. Assume you randomly sample 5,000 likely voters, what is the probability that the percentage who support candidate $X$ that you compute differs from the true population value (the expected value) by more than an additive $\pm 2\%$? What about differing by more than $\pm 5\%$ additive? What about deviating by more than $\pm 10\%$?
+    
+    \item (5 points) If the number of voters increases to 100,000. Repeat the above three questions again and report on your findings.
+    
+    \item (10 points) How many random voters must you sample if you want to guarantee that with probability at least $0.95$ over the randomness in the choice of who you poll, you end up with an estimate of the percentage of population who will vote for candidate $X$ that is accurate to within an additive $\pm 1\%$?
+    How does this change if you know that the fraction will vote for $X$ is very small; that is, at most $5\%$ of the entire population will cast their vote?
+\end{itemize}
+
+\newpage
+\paragraph{Problem 2 (30 points)}
+\begin{enumerate}[label=(\alph*)] 
+    \item\texttt{[10 points]} Load the MNIST dataset from pytorch. Here is an example code snippet for loading the dataset into pytorch. 
+
+    \begin{lstlisting}
+    def load_mnist(batch_size=256):
+        """Load and preprocess MNIST dataset"""
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])
+    
+        train_dataset = torchvision.datasets.MNIST(
+            root='./data', train=True, download=True, transform=transform)
+        test_dataset = torchvision.datasets.MNIST(
+            root='./data', train=False, download=True, transform=transform)
+    
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    
+        return train_loader, test_loader
+    \end{lstlisting}
+    
+    Next, implement a fully-connected neural network with two layers, including one layer for producing the output logits in PyTorch.
+    Report the test accuracy.
+    Plot the training loss and test accuracy curves.
+    
+    \item\texttt{[10 points]} 
+    Vary the width of the two-layer neural network between $[50, 100, 150, 200]$ and then report the training loss and test accuracy after varying the width.
+    Compare the results to the previous part.
+    In addition, calculate the number of parameters used in each neural network configuration.
+
+    \item\texttt{[10 points]}
+    Measure the spectral norms of both layers of the trained two-layer neural network.
+    Also, measure the path-norm of the trained two-layer neural network.
+    Compare the spectral-norm generalization bound as well as the path-norm generalization bound in the trained model (recall Example 2.12 and the follow-up discussion from Lecture 8).
+\end{enumerate}
+
+\newpage
+\paragraph{Problem 3 (20 points)}
+Recall that for a two-layer neural network with activation function $\sigma$, the neural tangent kernel (NTK) at $x_i, x_j$ is given as:
+\[ H_{i,j}^\star = x_i^Tx_j\cdot \mathbb{E}_{w\sim \cN(0, \id)}[\sigma'(w^Tx_i)\cdot\sigma'(w^Tx_j)]. \]
+When $\sigma(z) = \max (0,z)$ is the ReLU function, show that
+\[ H_{i,j}^\star = x_i^Tx_j\cdot \frac{\pi - \theta}{2\pi}, \]
+where $\theta$ denote the angle between $x_i$ and $x_j$.
+
+Then in the above Problem 2, calculate $H_{i,j}^{\star}$ between $100$ randomly-sampled samples from the training dataset.
+Examine the $H^{\star}$ matrix and comment on your findings.
+
+\newpage
+\paragraph{Problem 4 (30 points)}
+In this problem, you will work on implementing the nuclear-norm regularization algorithm for matrix completion, using a gradient-descent solver.
+
+For this experiment, you can work on a synthetic dataset.
+That is, generate a low-rank matrix $M$ with dimension $d_1 \times d_2$, with the rank of $M$ being $r$.
+Then, mask out (say, $90\%$ of the entries of $M$) and use the remaining entries as the observed set.
+Lastly, implement the gradient descent algorithm for matrix completion with a nuclear-norm regularization penalty added to the mean squared objective function.
+\end{document}
