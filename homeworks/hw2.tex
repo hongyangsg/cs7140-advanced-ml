@@ -124,7 +124,7 @@ However, excessively long answers are not encouraged --- After solving the probl
 \paragraph{Problem 1 (20 points)}
 In this problem, you will work on applications of the Chernoff Bound. For each question, be sure to specify which Chernoff bound you use.
 \begin{itemize}
-    \item (5 points) Suppose you are conducting a poll to forecast the upcoming election. Assume you randomly sample 5,000 likely voters, what is the probability that the percentage who support candidate $X$ that you compute differs from the true population value (the expected value) by more than an additive $\pm 2\%$? What about differing by more than $\pm 5\%$ additive? What about deviating by more than $\pm 10\%$?
+    \item (5 points) Suppose you are conducting a poll to forecast the upcoming election. Assume you randomly sample 5,000 voters, what is the probability that the percentage who support candidate $X$ that you compute differs from the true population value (the expected value) by more than an additive $\pm 2\%$? What about differing by more than $\pm 5\%$ additive? What about deviating by more than $\pm 10\%$ additive?
     
     \item (5 points) If the number of voters increases to 100,000. Repeat the above three questions again and report on your findings.
     
@@ -135,7 +135,7 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
 \newpage
 \paragraph{Problem 2 (30 points)}
 \begin{enumerate}[label=(\alph*)] 
-    \item\texttt{[10 points]} Load the MNIST dataset from pytorch. Here is an example code snippet for loading the dataset into pytorch. 
+    \item {(10 points)} Load the MNIST dataset from pytorch. Here is an example code snippet for loading the dataset into pytorch. 
 
     \begin{lstlisting}
     def load_mnist(batch_size=256):
@@ -157,15 +157,15 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
     \end{lstlisting}
     
     Next, implement a fully-connected neural network with two layers, including one layer for producing the output logits in PyTorch.
-    Report the test accuracy.
+    Report the final test accuracy.
     Plot the training loss and test accuracy curves.
     
-    \item\texttt{[10 points]} 
+    \item {(10 points)}
     Vary the width of the two-layer neural network between $[50, 100, 150, 200]$ and then report the training loss and test accuracy after varying the width.
     Compare the results to the previous part.
     In addition, calculate the number of parameters used in each neural network configuration.
 
-    \item\texttt{[10 points]}
+    \item {(10 points)}
     Measure the spectral norms of both layers of the trained two-layer neural network.
     Also, measure the path-norm of the trained two-layer neural network.
     Compare the spectral-norm generalization bound as well as the path-norm generalization bound in the trained model (recall Example 2.12 and the follow-up discussion from Lecture 8).
@@ -174,9 +174,9 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
 \newpage
 \paragraph{Problem 3 (20 points)}
 Recall that for a two-layer neural network with activation function $\sigma$, the neural tangent kernel (NTK) at $x_i, x_j$ is given as:
-\[ H_{i,j}^\star = x_i^Tx_j\cdot \mathbb{E}_{w\sim \cN(0, \id)}[\sigma'(w^Tx_i)\cdot\sigma'(w^Tx_j)]. \]
+\[ H_{i,j}^\star = x_i^Tx_j\cdot \mathbb{E}_{w\sim \cN(0, \id)}[\sigma'(w^{\top} x_i)\cdot\sigma'(w^{\top} x_j)]. \]
 When $\sigma(z) = \max (0,z)$ is the ReLU function, show that
-\[ H_{i,j}^\star = x_i^Tx_j\cdot \frac{\pi - \theta}{2\pi}, \]
+\[ H_{i,j}^\star = x_i^{\top} x_j\cdot \frac{\pi - \theta}{2\pi}, \]
 where $\theta$ denote the angle between $x_i$ and $x_j$.
 
 Then in the above Problem 2, calculate $H_{i,j}^{\star}$ between $100$ randomly-sampled samples from the training dataset.
@@ -190,4 +190,8 @@ For this experiment, you can work on a synthetic dataset.
 That is, generate a low-rank matrix $M$ with dimension $d_1 \times d_2$, with the rank of $M$ being $r$.
 Then, mask out (say, $90\%$ of the entries of $M$) and use the remaining entries as the observed set.
 Lastly, implement the gradient descent algorithm for matrix completion with a nuclear-norm regularization penalty added to the mean squared objective function.
+Vary the the regularization level parameter for adjusting the norm-norm regularization.
+Report the mean-squared reconstruction error.
+
+Repeat the same training procedure three times, and report the mean and standard deviations from the trained model outcomes.
 \end{document}

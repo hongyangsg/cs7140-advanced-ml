@@ -13,7 +13,7 @@ In particular, we shall begin by establishing the folklore intuition that the le
 This kind of folklore is especially intriguing in the context of deep networks, as these models have millions (and now billions) of parameters.
 However, this high complexity clearly does not explain/corroborate with the empirical results we typically see with supervised fine-tuning and in-context learning.
 
-\subsection{Neural tangent kernels (Lecture 10)}
+\subsection{Neural tangent kernels (Lectures 10-11)}
 
 %\subsubsection{Basics of kernel methods}
 The performance of a machine learning model breaks down into two parts:
@@ -245,3 +245,195 @@ Model: $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
     \caption{Illustration of the loss and the projected values onto the eigenspace.}
     \label{fig:ntk_eig}
 \end{figure}
+
+\subsection{Implicit regularization (Lectures 11-12)}
+
+Recall that we discussed the matrix completion problem in lecture 6.
+Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting.
+
+\begin{example}[Linear regression]
+Suppose we are doing linear regression on $n$ input samples:
+\[ \ell(w) = \frac 1 n \sum_{i=1}^n (x_i^{\top} \beta - y_i) \]
+Consider gradient descent:
+\[ w_{t+1} = w_t - \eta \nabla \ell(w_t) \]
+Suppose $n$ is smaller than the dimension of $w \in \real^d$.
+Suppose $w_0 = 0$.
+Then, given that $\nabla \ell(w_t) = \frac 2 n\sum_{i=1}^n (x_i^{\top} \beta - y_i) x_i$, $w_{t+1}$ will always lie inside the span of $\set{x_1, x_2, \dots, x_n}$, whose dimension is smaller than $d$.
+In other words, gradient descent searches inside a space whose dimension is much smaller than the actual dimension of the entire space.
+\end{example}
+
+Next we write the problem setup.
+Suppose there is an underlying rank-$r$ matrix $X^{\star} \in \real^{d \times d}$.
+In particular, for the illustration of the analysis, we shall focus on the case of $X^{\star}$ being positive semi-definite.
+As for the input to the problem, suppose we have $m$ random Gaussian matrices whose entries are all drawn from $N(0, 1)$, denoted as $A_1, A_2, \dots, A_m$, all with dimension $d$ by $d$.
+In addition, suppose they are symmetric, for example, we could transform each $A_i$ as $(A_i + A_i^{\top}) / 2$.
+Let $y_i = \inner{A_i} {UU^{\top}}$, for $i = 1, 2, \dots, n$.
+
+A solution would be to find another positive semi-definite matrix $UU^{\top}$ so that the distance between $UU^{\top}$ and $X^{\star}$ is minimized.
+In particular, we shall consider the case that $U \in \real^{d \times d}$.
+Then, we set up a mean squared loss as follows:
+\[ \ell(U) = \frac 1 n \sum_{i=1}^n \left( \inner{UU^{\top}} {A_i} - y_i \right)^2 \]
+In practice, we see that this loss function has many solutions that render its loss to near zero, even though $UU^{\top}$ can be quite far from $X^{\star}$.
+A key observation is that the generalization behavior of $U$ should depend on the initialization.
+Next we shall make this precise by analyzing the gradient descent dynamic.
+
+Let $U_0 = \alpha \id$, for some small values of $\alpha$.
+Then, let the gradient descent update be given by
+\[ U_{t + 1} = U_t - \eta \nabla \ell(U_t) = (\id - \eta M_t) U_t, \]
+where \[ M_t = \frac 1 m \sum_{i=1}^m \inner{A_i}{U_t U_t^{\top} - X^{\star}}A_i \]
+
+We shall restrict the analysis to the rank-$1$ case where $r = 1$, where we can write $X^{\star} = u^{\star} {u^{\star}}^{\top}$, for some $u^{\star} \in \real^d$.
+Let $\id_{u^{\star}} = \id - \frac {u^{\star} {u^{\star}}^{\top}} {\bignorm{u^{\star}}^2}$.
+For simplicity, let's take the norm of $u^{\star}$ as $1$.
+Then, we decompose the iterates $U_t$ into two parts into the subspace of $u^{\star}$ and its complement:
+\begin{align*} 
+    U_t &= u^{\star} {u^{\star}}^{\top} U_t + (\id - \id_{u^{\star}} {u^{\star}}^{\top}) U_t \\
+        &\define u^{\star} r_t^{\top} + E_t,
+\end{align*}
+where we denote by $r_t = U_t^{\top} u^{\star}$, and $E_t = (\id - \id_{u^{\star}}) U_t$.
+
+We will show that the spectral norm and the Frobenius norm of the ``error term'' $E_t$ remains small throughout the iterations, whereas the ``signal'' term $r_t$ grows exponentially fast (in the sense that the norm of $r_t$ grows to the norm of $u^{\star}$.)
+Note that any solution with $\bignorm{r_t} = 1$ and $E_t = 0$ will give exact recovery, and for the purpose of this section we will show that $\bignorm{r_t}$ will converge approximately to $1$ and $E_t$ stays small.
+
+Based on the gradient update above, we derive the update for $E_t$:
+\begin{align}
+    E_{t+1} &= (\id - \id_{u^{\star}}) (\id - \eta M_t) U_t \notag\\
+    &= E_t - \eta (\id - \id_{u^{\star}}) M_t U_t \label{eq_Et_1}
+\end{align}
+
+We shall also assume that the set of measurement matrices $(A_1, A_2, \dots, A_m)$ satisfies the restricted isometry property.
+A set of linear measurement matrices $A_1, \dots, A_m$ satisfies $(r, \delta)$-restricted isometry property (RIP) if for any $d$ by $d$ matrix $X$ with rank at most $r$, we have that
+\begin{align}\label{eq_rip}
+    (1 - \delta) \bignormFro{X}^2 \le \frac 1 m \sum_{i=1}^m \inner{A_i}{X}^2 \le (1 + \delta) \bignormFro{X}^2
+\end{align}
+In the following, we shall assume that the set of measurement matrices satisfies $(4, \delta)$-RIP with $\delta \le c$ (for some small enough constant $c$).
+One corollary of the above definition is that for any matrices $X, Y \in \real^{d \times d}$ with rank at most $r$, we also have:
+\begin{align}\label{eq_rip_cross} \bigabs{ \frac 1 m \sum_{i=1}^m \inner{A_i}{X} \inner{A_i}{Y} - \inner{X}{Y} } \le \delta \bignormFro{X} \bignormFro{Y}
+\end{align}
+If $Y$ is at most rank $r$ but $X$ may not be, then we have the following instead:
+\begin{align}\label{eq_rip_oneside}
+    \bigabs{\frac 1 m \sum_{i=1}^m \inner{A_i}{X} \inner{A_i}{Y} - \inner{X}{Y}} \le \delta \bignorm{X}_{\star} \bignormFro{Y}
+\end{align}
+
+\begin{theorem}[Convergence of gradient descent from small initialization in over-parameterized matrix sensing]
+Suppose $\alpha \le \delta \sqrt{\frac 1 d \log(\frac 1 {\delta})}$ and $\eta \lesssim c \delta^2 \log^{-1} (\frac 1 {\delta \alpha})$.
+Then after $T = \Theta(\frac {(\alpha \delta)^{-1}} {\eta})$ iterations, we have that
+\begin{align}
+    \bignormFro{U_T U_T^{\top} - X^{\star}} \lesssim \delta \log(\delta^{-1})
+\end{align}
+\end{theorem}
+
+\subsubsection{Error dynamics}
+Based on the update rule \eqref{eq_Et_1} for $E_t$, we have that
+\[ \bignormFro{E_{t+1}}^2 = \bignormFro{E_t}^2 - 2\eta \inner{E_t}{(\id - \id_{u^{\star}}) M_t U_t} + \eta^2 \bignormFro{(\id - \id_{u^{\star}}) M_t U_t }^2 \]
+When $\eta$ is sufficiently small, and $\bignormFro{M_t}, \bignorms{U_t}$ are both bounded from above, the third term on the right-hand side is negligible compared to the second term.
+Therefore, we focus on the second term.
+\begin{align*}
+    \inner{E_t}{(\id - \id_{u^{\star}}) M_t U_t} 
+    &= \frac 1 m \sum_{i=1}^m \inner{A_i} {U_t U_t^{\top} - X^{\star}} \inner{A_i} {(\id - \id_{u^{\star}}) E_t U_t^{\top}} \\
+    &= \frac 1 m \sum_{i=1}^m \inner{A_i} {U_t U_t^{\top} - X^{\star}} \inner{A_i} {E_t U_t^{\top}}
+\end{align*}
+We use \eqref{eq_rip_cross} to analyze the above, but one gap here is that $U_t U_t^{\top}$ is not necessarily low-rank.
+Thus, we decompose it into a low-rank part and an error part with small trace norm.
+\begin{align}
+    & \frac 1 m \sum_{i=1}^m \inner{A_i} {U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} \inner{A_i} {E_t r_t {u^{\star}}^{\top}} \\
+    \ge & \inner{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} {E_t r_t {u^{\star}}^{\top} } - \delta \bignormFro{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} \bignormFro{E_t r_t {u^{\star}}^{\top}} \\
+    \ge & \inner{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}}{E_t r_t {u^{\star}}^{\top}} - 2\delta \bignorm{E_t r_t}
+\end{align}
+Above we use the fact that $\bignormFro{U_t U_t^{\top} - X^{\star} E_t E_t^{\top}}, \bignorm{r_t}, \bignorm{u^{\star}}$ are all bounded from above by $1$.
+As for the $E_t E_t^{\top}$ part, we first note that $\inner{A_i}{E_t E_t^{\top}}^2 \ge 0$.
+Thus, we can focus on the cross terms.
+\begin{align*}
+    \frac 1 m \sum_{i=1}^m \inner{A_i} {E_t E_t^{\top}} \inner{A_i} {E_t r_t {u^{\star}}^{\top}}
+    &\ge \inner{E_t E_t^{\top}} {E_t r_t {u^{\star}}^{\top}} - \delta \bignorm{E_t E_t^{\top}}_{\star} \bignorm{E_t r_t {u^{\star}}^{\top}} \\
+    &\ge \inner{E_t E_t^{\top}}{E_t r_t {u^{\star}}^{\top}} - \frac {\delta} 2 \bignorm{E_t r_t},
+\end{align*}
+where we are using the fact that $\bignorm{E_t E_t^{\top}}_{\star}$ is bounded from above by some constant.
+The other cross term would be
+\begin{align*}
+    & \frac 1 m \sum_{i=1}^m \inner{A_i}{E_t E_t^{\top}} \inner{A_i}{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} \\
+    \ge& \inner{E_t E_t^{\top}} {U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} - \delta \bignorm{E_t E_t^{\top}}_{\star} \bignormFro{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} \\
+    \ge& \inner{E_t E_t^{\top}}{U_tU_t^{\top} - X^{\star}} - \delta \bignorm{E_t E_t^{\top}}_{\star}
+\end{align*}
+Because $E_t^{\top} X^{\star} = 0$ and also $\bignormFro{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}}$ is bounded from above by $1$.
+All put together, we can conclude that
+\begin{align*}
+    \inner{E_t}{(\id - \id_{u^{\star}}) M_t U_t}
+    \ge \inner{U_t U_t^{\top} - X^{\star}}{E_t U_t^{\top}} - 2.5\delta \bignorm{E_t r_t} - \delta \bignormFro{E_t}^2
+\end{align*}
+Next, we have
+\begin{align*}
+    \inner{U_t U_t^{\top} - X^{\star}} {E_t U_t^{\top}}
+    = \inner{U_t U_t^{\top}} {E_t U_t^{\top}}
+    &= \inner{U_t^{\top}} {U_t^{\top} E_t U_t^{\top}} \\
+    &= \inner{U_t^{\top}} {E_t^{\top} E_t U_t^{\top}} \\
+    &= \inner{E_t U_t^{\top}} {E_t U_t^{\top}} \ge 0
+\end{align*}
+In summary, we have proved that
+\begin{align}
+    \bignormFro{E_{t+1}}^2 \le (1 + \eta \delta) \bignormFro{E_t}^2 + 2.5\delta\eta \bignorm{E_t r_t} + O(\eta^2)
+\end{align}
+We could also control the growth of the largest singular value of $E_t$ as
+\begin{align}
+    E_{t+1} &= E_t - \eta (\id - \id_{u^{\star}}) M_t U_t \\ 
+    &= E_t - \eta (\id - \id_{u^{\star}}) E_t U_t^{\top} U_t + \eta(\id - \id_{u^{\star}}) (M_t U_t - E_t U_t^{\top} U_t)
+\end{align}
+Next, notice that $(\id - \id_{u^{\star}}) (U_t U_t^{\top} - X^{\star}) U_t = E_t U_t^{\top} U_t$, and
+\begin{align*}
+    & \bignorms{(\id - \id_{u^{\star}}) M_t U_t - (\id - \id_{u^{\star}}) (U_t U_t^{\top} - X^{\star}) U_t} \\
+    \le & 4 \delta \left(\bignormFro{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} + \bignorm{E_t E_t^{\top}}_{\star} \right) \bignorms{U_t} \\
+    \le & 8 \delta \bignorms{U_t} \le 8 \delta (\bignorm{r_t} + \bignorms{E_t})
+\end{align*}
+Here, we are using two more properties about RIP measurements:
+if $X$ is at most rank $r$, then
+\begin{align} \bignorms{\frac 1 m \sum_{i=1}^m \inner{A_i}{X} A_i R - XR} \le \delta \bignormFro{X} \bignorms{R} \label{eq_rip_ur_rank}\end{align}
+In addition, for any $X$, we have
+\begin{align} \bignorms{\frac 1 m \sum_{i=1}^m \inner{A_i}{X}A_i R - XR} \le \delta \bignorm{X}_{\star} \bignorms{R} \end{align}
+The same is true if we have another matrix $U$ where we insert before $A_i$:
+\begin{align} \label{eq_rip_ur}
+    \bignorms{\frac 1 m \sum_{i=1}^m \inner{A_i}{X} U A_i R - U X R}
+    \le \delta \bignorms{U} \bignorm{X}_{\star} \bignorms{R}
+\end{align}
+
+Therefore, we can conclude that
+\begin{align*}
+    \bignorms{E_{t+1}} &\le \bignorms{E_t (\id - \eta U_t^{\top} U_t)} + 2 \eta \delta(\bignorm{r_t} + \bignorms{E_t}) \\
+    &\le (1 + 2\eta\delta) \bignorms{E_t} + 2\eta\delta \bignorm{r_t}
+\end{align*}
+
+\subsubsection{Signal dynamics}
+
+Next, we show that
+\begin{align}
+    \bignorm{r_{t+1} - (1 + \eta(1 - \bignorm{r_t}^2)) r_t }
+    \le \eta \bignorms{E_t}^2 \bignorm{r_t} + 2\eta \delta (\bignorms{E_t} + \bignorm{r_t})
+\end{align}
+By the update rule $U_{t+1} + (\id - \eta M_t) U_t$.
+We have that
+\begin{align*}
+    r_{t+1} = U_{t+1}^{\top} u^{\star}
+    = U_t^{\top} (\id - \eta M_t^{\top}) u^{\star}
+    = r_t - \eta U_t^{\top} M_t^{\top} u^{\star}
+\end{align*}
+Recall that $M_t = \frac 1 m \sum_{i=1}^m \inner{A_i}{U_t U_t^{\top} - X^{\star}} A_i$.
+Using \eqref{eq_rip_ur_rank} and \eqref{eq_rip_ur}, we have that
+\begin{align}
+    \bignorm{r_{t+1} - (r_t - \eta U_t^{\star} (U_t U_t^{\top} - X^{\star}) u^{\star})}
+    \le \delta (\bignormFro{U_t U_t^{\top} - X^{\star} - E_t E_t^{\top}} + \bignorm{E_t E_t^{\top}}_{\star}) \bignorms{U_t}
+\end{align}
+Here we observe that
+\begin{align}
+    U_t^{\top} (U_t U_t^{\top} - X^{\star}) u^{\star}
+    = U_t^{\top} U_t r_t - r_t
+    = (r_t r_t^{\top} + E_t^{\top} E_t) r_t - r_t
+    = (\bignorm{r_t}^2 - 1) r_t - E_t^{\top} E_t r_t
+\end{align}
+Therefore, we have that
+\begin{align}
+    \bignorm{r_{t+1} - (1 + \eta(1 - \bignorm{r_t}^2)) r_t}
+    \le \eta \bignorm{E_t^{\top} E_t r_t} + 2 \eta\delta \bignorms{U_t}
+\end{align}
+The above suggests that $r_t$ will eventually drift towards a vector whose norm is equal to one.
+
+Putting things together, we essentially showed that $E_t$ will remain relatively smaller than $r_t$, since $E_t$ only grows by a rate of $1 + \eta \delta$.
+Meanwhile, $r_t$ grows by a rate of $1 + O(\eta)$, when it is still bounded away from $1$.
