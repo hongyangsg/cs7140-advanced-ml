@@ -9,21 +9,25 @@ from sklearn.preprocessing import StandardScaler
 import math
 
 
-class TwoLayerNN(nn.Module):
-    """Two-layer neural network classifier"""
+class ThreeLayerNN(nn.Module):
+    """Three-layer neural network classifier"""
 
     def __init__(self, input_dim, hidden_dim, output_dim):
-        super(TwoLayerNN, self).__init__()
+        super(ThreeLayerNN, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(hidden_dim, output_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
 
     def forward(self, x):
         x = self.fc1(x)
-        x = self.relu(x)
+        x = self.relu1(x)
         x = self.fc2(x)
+        x = self.relu2(x)
+        x = self.fc3(x)
         return x
 
 
@@ -82,25 +86,29 @@ def measure_weights(model):
 
     B1 = math.sqrt(np.linalg.norm(model.fc1.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc1.bias.data.cpu().numpy()) ** 2)
     B2 = math.sqrt(np.linalg.norm(model.fc2.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc2.bias.data.cpu().numpy()) ** 2)
+    B3 = math.sqrt(np.linalg.norm(model.fc3.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc3.bias.data.cpu().numpy()) ** 2)
 
     # calculate number of parameters
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    return B1, B2, num_params
+    return B1, B2, B3, num_params
 
 
 def measure_path_norm(model):
-    """Calculate the path norm of the two-layer nn"""
+    """Calculate the path norm of the three-layer nn"""
     path_norm = 0.0
-    for i in range(model.hidden_dim):
-        for j in range(model.output_dim):
-            w1 = model.fc1.weight.data[i, :]
-            b1 = model.fc1.bias.data[i]
-            w2 = model.fc2.weight.data[j, i]
-            b2 = model.fc2.bias.data[j]
+    for i in range(model.hidden_dim):  # first hidden layer neurons
+        for j in range(model.hidden_dim):  # second hidden layer neurons
+            for k in range(model.output_dim):  # output layer neurons
+                w1 = model.fc1.weight.data[i, :]
+                b1 = model.fc1.bias.data[i]
+                w2 = model.fc2.weight.data[j, i]
+                b2 = model.fc2.bias.data[j]
+                w3 = model.fc3.weight.data[k, j]
+                b3 = model.fc3.bias.data[k]
 
-            path_contribution = (torch.norm(w1, p=2) + torch.abs(b1)) * (torch.abs(w2) + torch.abs(b2))
-            path_norm += path_contribution.item()
+                path_contribution = (torch.norm(w1, p=2) + torch.abs(b1)) * (torch.abs(w2) + torch.abs(b2)) * (torch.abs(w3) + torch.abs(b3))
+                path_norm += path_contribution.item()
 
     return path_norm
 
@@ -170,77 +178,108 @@ def main():
     print(f"Training set size: {len(X_train)}")
     print(f"Test set size: {len(X_test)}")
 
-    # Initialize model
+    # Ablation study: vary hidden_dim from 10 to 100
     input_dim = 2
-    hidden_dim = 30
     output_dim = 2
+    hidden_dims = range(10, 101, 10)  # [10, 20, 30, ..., 100]
 
-    print(f"\nTraining TwoLayerNN with hidden dimension: {hidden_dim}")
-    model = TwoLayerNN(input_dim, hidden_dim, output_dim)
+    results = []
 
-    print(f"\nModel architecture:")
-    print(model)
+    print("\n" + "="*80)
+    print("ABLATION STUDY: Varying Hidden Dimension (3-Layer Network)")
+    print("="*80)
 
-    # # Train model
-    # print("\nTraining model...")
+    for hidden_dim in hidden_dims:
+        print(f"\n{'='*80}")
+        print(f"Training model with hidden_dim = {hidden_dim}")
+        print(f"{'='*80}")
 
-    train_losses, test_accuracies = train_model(model, X_train, y_train, X_test, y_test, epochs=100, lr=0.01)
+        # Initialize model
+        model = ThreeLayerNN(input_dim, hidden_dim, output_dim)
 
-    # # Measure weights
-    weights_B1, weights_B2, num_params = measure_weights(model)
-    adjusted_norm = weights_B1 * weights_B2 * math.sqrt(model.hidden_dim)
-    print(f"Weight Measurement B1: {weights_B1:.4f}", f"B2: {weights_B2:.4f}", f"Adjusted Norm: {adjusted_norm:.4f}", f"Number of parameters: {num_params}")
+        # Train model
+        train_losses, test_accuracies = train_model(model, X_train, y_train, X_test, y_test, epochs=100, lr=0.01)
 
-    path_norm = measure_path_norm(model)
-    print(f"Path Norm: {path_norm:.4f}")
+        # Final evaluation
+        model.eval()
+        with torch.no_grad():
+            train_outputs = model(X_train)
+            train_loss = nn.CrossEntropyLoss()(train_outputs, y_train)
+            _, train_predicted = torch.max(train_outputs, 1)
+            train_accuracy = (train_predicted == y_train).float().mean()
 
-    # Final evaluation
-    model.eval()
-    with torch.no_grad():
-         train_outputs = model(X_train)
-         _, train_predicted = torch.max(train_outputs, 1)
-         train_accuracy = (train_predicted == y_train).float().mean()
+            test_outputs = model(X_test)
+            test_loss = nn.CrossEntropyLoss()(test_outputs, y_test)
+            _, test_predicted = torch.max(test_outputs, 1)
+            test_accuracy = (test_predicted == y_test).float().mean()
 
-         test_outputs = model(X_test)
-         _, test_predicted = torch.max(test_outputs, 1)
-         test_accuracy = (test_predicted == y_test).float().mean()
+        # Store results
+        results.append({
+            'hidden_dim': hidden_dim,
+            'train_loss': train_loss.item(),
+            'train_accuracy': train_accuracy.item(),
+            'test_loss': test_loss.item(),
+            'test_accuracy': test_accuracy.item()
+        })
 
-    print("\n" + "="*60)
-    print("FINAL RESULTS")
-    print("="*60)
-    print(f"Final Train Accuracy: {train_accuracy.item():.4f}")
-    print(f"Final Test Accuracy: {test_accuracy.item():.4f}")
+        print(f"\nResults for hidden_dim = {hidden_dim}:")
+        print(f"  Train Loss: {train_loss.item():.4f}, Train Accuracy: {train_accuracy.item():.4f}")
+        print(f"  Test Loss:  {test_loss.item():.4f}, Test Accuracy:  {test_accuracy.item():.4f}")
 
-    # Visualizations
-    fig = plt.figure(figsize=(15, 5))
+    # Print summary table
+    print("\n" + "="*80)
+    print("ABLATION STUDY SUMMARY")
+    print("="*80)
+    print(f"{'Hidden Dim':<12} {'Train Loss':<12} {'Train Acc':<12} {'Test Loss':<12} {'Test Acc':<12}")
+    print("-"*80)
+    for result in results:
+        print(f"{result['hidden_dim']:<12} {result['train_loss']:<12.4f} {result['train_accuracy']:<12.4f} "
+              f"{result['test_loss']:<12.4f} {result['test_accuracy']:<12.4f}")
 
-    # Plot 1: Training history
-    ax1 = plt.subplot(1, 3, 1)
-    ax1.plot(train_losses)
-    ax1.set_title('Training Loss')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Loss')
+    # Create summary plot
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
+
+    hidden_dims_list = [r['hidden_dim'] for r in results]
+    train_losses_list = [r['train_loss'] for r in results]
+    train_accs_list = [r['train_accuracy'] for r in results]
+    test_losses_list = [r['test_loss'] for r in results]
+    test_accs_list = [r['test_accuracy'] for r in results]
+
+    # Plot train loss vs hidden_dim
+    ax1.plot(hidden_dims_list, train_losses_list, 'o-', linewidth=2, markersize=8)
+    ax1.set_xlabel('Hidden Dimension')
+    ax1.set_ylabel('Train Loss')
+    ax1.set_title('Train Loss vs Hidden Dimension (3-Layer NN)')
     ax1.grid(True)
 
-    ax2 = plt.subplot(1, 3, 2)
-    ax2.plot(test_accuracies)
-    ax2.set_title('Test Accuracy')
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Accuracy')
+    # Plot train accuracy vs hidden_dim
+    ax2.plot(hidden_dims_list, train_accs_list, 'o-', linewidth=2, markersize=8, color='green')
+    ax2.set_xlabel('Hidden Dimension')
+    ax2.set_ylabel('Train Accuracy')
+    ax2.set_title('Train Accuracy vs Hidden Dimension (3-Layer NN)')
     ax2.grid(True)
 
-    # Plot 2: Decision boundary
-    ax3 = plt.subplot(1, 3, 3)
-    plt.sca(ax3)
-    visualize_decision_boundary(model, X_test.numpy(), y_test.numpy(), title="Decision Boundary (Test Set)")
+    # Plot test loss vs hidden_dim
+    ax3.plot(hidden_dims_list, test_losses_list, 'o-', linewidth=2, markersize=8, color='red')
+    ax3.set_xlabel('Hidden Dimension')
+    ax3.set_ylabel('Test Loss')
+    ax3.set_title('Test Loss vs Hidden Dimension (3-Layer NN)')
+    ax3.grid(True)
+
+    # Plot test accuracy vs hidden_dim
+    ax4.plot(hidden_dims_list, test_accs_list, 'o-', linewidth=2, markersize=8, color='orange')
+    ax4.set_xlabel('Hidden Dimension')
+    ax4.set_ylabel('Test Accuracy')
+    ax4.set_title('Test Accuracy vs Hidden Dimension (3-Layer NN)')
+    ax4.grid(True)
 
     plt.tight_layout()
-    plt.savefig('./cs7140-advanced-ml/figures/two_layer_nn_results.png', dpi=150)
-    print("\nVisualization saved to 'two_layer_nn_results.png'")
+    plt.savefig('../figures/ablation_study_hidden_dim.png', dpi=150)
+    print("\nAblation study visualization saved to '../figures/ablation_study_hidden_dim.png'")
     plt.show()
 
-    return model, train_losses, test_accuracies
+    return results
 
 
 if __name__ == "__main__":
-    model, train_losses, test_accuracies = main()
+    results = main()
