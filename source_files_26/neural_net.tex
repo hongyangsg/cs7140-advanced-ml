@@ -138,7 +138,7 @@ This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
     For a Gaussian random vector, the pair $(w^\top x, w^\top x')$ is jointly normal, and
     \[ \Pr(w^\top x > 0, w^\top x' > 0) = \frac14 + \frac{1}{2\pi}\arcsin(\cos\theta) = \frac{\pi - \theta}{2\pi}, \]
     using the fact that $\arcsin(\cos\theta)=\frac{\pi}{2}-\theta$ for  $\theta\in[0,\pi]$.
-    Note that $w$ is rotation-invariant. Thus, we can essentially project $x, x'$ to a two-dimensional plane, and instead imagine that we are drawing $w$ from a unit circle.
+    Another argument is that since $w$ is rotation-invariant, we can essentially project $x, x'$ to a two-dimensional plane, and instead imagine that we are drawing $w$ from a unit circle.
     Therefore, the NTK becomes
     $H^\star(x,x') = x^{\top}x' \cdot \frac{\pi - \theta}{2\pi}.$
 
@@ -146,6 +146,22 @@ This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
     Then $x_1^\top x_2 = 0$,  and $H^\star(x_1,x_2) = 0.$ 
     Since $x_1$ and $x_2$ are both unit vectors, we also have $H^\star(x_1,x_1)=H^\star(x_2,x_2) = \frac{1}{2}.$
     Thus, the NTK matrix for ${x_1,x_2}$ is $H^\star = [\frac{1}{2}, 0; 0, \frac{1}{2}].$
+\end{example}
+
+\begin{example}[Kernel ridge regression]
+One way to apply the above kernel definition is via kernel ridge regression (KRR), which learns a function in the associated reproducing kernel Hilbert space (RKHS) by solving
+\[ \min_{f \in \mathcal{H}} \sum_{i=1}^n (f(x_i)-y_i)^2 + \lambda \bignorm{f}_{\mathcal{H}}^2, \]
+where $\lambda>0$ is a regularization parameter.
+Based on the representer theorem, the optimal solution admits the finite-dimensional form
+\[ f(x) = \sum_{i=1}^n \alpha_i k(x_i,x), \]
+for some coefficients $\alpha \in \mathbb{R}^n$.
+Let $K \in \mathbb{R}^{n \times n}$ be the kernel matrix with $K_{i, j} = k(x_i,x_j)$, and let $y = (y_1,\dots,y_n)^\top$.
+Substituting the representation into the objective gives the quadratic problem
+\[ \min_{\alpha\in\real^n} \bignorm{K\alpha - y}^2 + \lambda \alpha^\top K \alpha, \]
+whose solution is $\alpha = (K + \lambda \id)^{-1} y.$
+
+For a new input $x$, the prediction is $f(x) = k_x^\top \alpha$, where $k_x = \big(k(x_1,x),\dots,k(x_n,x)\big)^\top$.
+In the NTK regime, the kernel $k(x,x')$ is given by the neural tangent kernel $H^\star(x,x')$. Training a sufficiently wide neural network with squared loss is equivalent to performing kernel ridge regression with kernel matrix $H^\star$.
 \end{example}
 
 \subsubsection{Convergence analysis}
@@ -214,11 +230,10 @@ Consider the movement of a single entry of the kernel matrix
 
 Taken together, we have shown that if $m$ is large enough, then $H(t)$ will stay close to $H^{\star}$ throughout the entire gradient descent dynamic.
 
-\subsubsection{Implications}
-
-The dynamics of network outputs are governed by the following approximation using the NTK matrix $H^{\star}$:
+%\subsubsection{Implications}
+In summary, the dynamics of network outputs are governed by the following approximation using the NTK matrix $H^{\star}$:
 \[ \frac {d u(t)} {d t} \approx - H^{\star} (u(t) - y) \]
-We'll use this to describe two implications:
+We use this to describe two implications:
 i) Convergence to global minima;
 ii) Explaining why NTK converges faster using original labels than using random labels.
 
@@ -266,7 +281,7 @@ This experiment is performed to separate two classes of digits from MNIST, and i
 
 \subsection{Implicit regularization (Lectures 11-12)}
 
-Recall that we discussed the matrix completion problem in lecture 6.
+Recall that we discussed the matrix completion problem in Section \ref{sec_mc}.
 Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting.
 
 \begin{example}[Linear regression]
@@ -294,6 +309,7 @@ Then, we set up a mean squared loss as follows:
 In practice, we see that this loss function has many solutions that render its loss to near zero, even though $UU^{\top}$ can be quite far from $X^{\star}$.
 A key observation is that the generalization behavior of $U$ should depend on the initialization.
 Next we shall make this precise by analyzing the gradient descent dynamic.
+For reference, this proof is based on the work of \cite{li2018algorithmic}.
 
 Let $U_0 = \alpha \id$, for some small values of $\alpha$.
 Then, let the gradient descent update be given by
