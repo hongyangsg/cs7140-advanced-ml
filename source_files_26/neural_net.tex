@@ -116,8 +116,8 @@ Essentially, performing Taylor's expansion to derive the following
 \end{align*}
 
 Next, %{Defining the ultra-wide kernel:}
-recall that the dynamics of predictions is governed by $H(t) \in \real^{n \times n}$ (see \eqref{eq_ht}).
-Recall that $f$ is given in \eqref{eq_twolayer}.
+recall that the dynamics of predictions is governed by $H(t) \in \real^{n \times n}$ (see equation \eqref{eq_ht}).
+Recall that $f$ is given in equation \eqref{eq_twolayer}.
 Therefore, the $i, j$-th entry of the kernel matrix $H(t)$ is
 \[ H_{i, j}(0) = x_i^{\top} x_j \sum_{r = 1}^m \biginner{\frac {a_r \sigma'((w_r(0)^{\top} x_i) )} {\sqrt m}} { \frac {a_r \sigma'( (w_r(0))^{\top} x_j )} {\sqrt m} }  \]
 
@@ -125,12 +125,32 @@ Suppose we sample every $w_r(0)$ from a standard Gaussian distribution.
 In addition, suppose we sample $a_r$ uniformly between $\set{+1, -1}$.
 Then, one can view the above as the average of $m$ independent random variables.
 When $m$ becomes very large, then by the law of large numbers, the average is close to its expectation.
-This gives rise to the Neural Tangent Kernel evaluated at $x_, x_j$ as follows:
+This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
 \[ H^{\star}_{i, j} = x_i^{\top} x_j \exarg{ w \sim \cN(0, \id)  } { \sigma'(w^{\top} x_i) \sigma'(w^{\top} x_j) } \]
+
+\begin{example}[Two-layer ReLU networks with second-layer fixed]
+    Consider a two-layer network $f(x) = \frac{1}{\sqrt{m}} \sum_{r=1}^m a_r \sigma(w_r^\top x),$
+    where $\sigma(z)=\max(0,z)$, $a_r \in \set{\pm1}$, and $w_r(0) \sim \mathcal{N}(0, \id_d)$. For ReLU, the derivative is $\sigma'(z) = \mathbbm{1}_{z > 0}.$
+    Hence, the NTK between two inputs $x, x'$ is
+    \[ H^\star(x,x') = x^\top x' \mathbb{E}_{w \sim \mathcal{N}(0, \id_d)} \big[ \mathbbm{1}_{w^\top x > 0} \cdot \mathbbm{1}_{w^\top x' > 0} \big]. \]
+
+    Let $\theta$ denote the angle between $x$ and $x'$ such that $\cos \theta = \frac{x^\top x'}{\bignorm{x}\cdot \bignorm{x'}}.$
+    For a Gaussian random vector, the pair $(w^\top x, w^\top x')$ is jointly normal, and
+    \[ \Pr(w^\top x > 0, w^\top x' > 0) = \frac14 + \frac{1}{2\pi}\arcsin(\cos\theta) = \frac{\pi - \theta}{2\pi}, \]
+    using the fact that $\arcsin(\cos\theta)=\frac{\pi}{2}-\theta$ for  $\theta\in[0,\pi]$.
+    Note that $w$ is rotation-invariant. Thus, we can essentially project $x, x'$ to a two-dimensional plane, and instead imagine that we are drawing $w$ from a unit circle.
+    Therefore, the NTK becomes
+    $H^\star(x,x') = x^{\top}x' \cdot \frac{\pi - \theta}{2\pi}.$
+
+    As an example, let $x_1=(1,0)$ and $x_2=(0,1)$ in $\mathbb{R}^2$. 
+    Then $x_1^\top x_2 = 0$,  and $H^\star(x_1,x_2) = 0.$ 
+    Since $x_1$ and $x_2$ are both unit vectors, we also have $H^\star(x_1,x_1)=H^\star(x_2,x_2) = \frac{1}{2}.$
+    Thus, the NTK matrix for ${x_1,x_2}$ is $H^\star = [\frac{1}{2}, 0; 0, \frac{1}{2}].$
+\end{example}
 
 \subsubsection{Convergence analysis}
 
-Based on the NTK defined above, we now show that the neural network stays close to initialization long enough to get a small loss value.
+Based on the NTK defined above, we now show that for this particular initialization, the neural network stays close to initialization long enough so that the loss decreases to a sufficiently low level.
 There are essentially two steps here:
 \begin{itemize}
     \item Step 1: For a sufficiently wide network, the randomly initialized neural net is close to the expectation -- the NTK.
@@ -169,17 +189,17 @@ Then if $m \ge O(\frac {n^6 t^2 \log(n \delta^{-1})} {\epsilon^2})$, with probab
 \[ \bignormFro{H(t) - H^{\star}} \le \epsilon \]
 There are two steps in the proof of this result:
 \begin{itemize}
-    \item We first show that every weight vector remains close to the initialization if the width is large
+    \item We first show that every weight vector remains close to the initialization if the width is large.
 
-    \item We then show that this implies the kernel matrix remains close to the NTK
+    \item We then show that this implies the kernel matrix remains close to the NTK.
 \end{itemize}
 
 Consider the movement of a single weight vector $w_r$:
 \begin{align*}
-    \bignorms{ w_r(t) - w_r(0) } &= \bignorms{ \int_{0}^t \frac {d w_r(\tau)} {d \tau} d \tau } \\
-    &= \bignorms{ \int_{0}^t \frac 1 {\sqrt m} \sum_{i = 0}^n (u_i(\tau) - y_i ) a_r x_i \sigma'( w_r(\tau)^{\top} x_i ) d \tau } \\
-    &\le \int_{0}^t \bignorms{ \frac 1 {\sqrt m} \sum_{i= 0}^n (u_i(\tau) - y_i) a_r x_i \sigma'(w_r (\tau)^{\top} x_i) d\tau } \\
-    &\le \frac 1 {\sqrt m} \sum_{i=0}^n \int_0^t \bignorms{ (u_i(\tau) - y_i) a_r x_i \sigma'(w_r(\tau)^{\top} x_i)  }d\tau \le O\left(\frac {t n} {\sqrt m}\right),
+    \bignorm{ w_r(t) - w_r(0) } &= \bignorm{ \int_{0}^t \frac {d w_r(\tau)} {d \tau} d \tau } \\
+    &= \bignorm{ \int_{0}^t \frac 1 {\sqrt m} \sum_{i = 0}^n (u_i(\tau) - y_i ) a_r x_i \sigma'( w_r(\tau)^{\top} x_i ) d \tau } \\
+    &\le \int_{0}^t \bignorm{ \frac 1 {\sqrt m} \sum_{i= 0}^n (u_i(\tau) - y_i) a_r x_i \sigma'(w_r (\tau)^{\top} x_i) d\tau } \\
+    &\le \frac 1 {\sqrt m} \sum_{i=0}^n \int_0^t \bignorm{ (u_i(\tau) - y_i) a_r x_i \sigma'(w_r(\tau)^{\top} x_i)  }d\tau \le O\left(\frac {t n} {\sqrt m}\right),
 \end{align*}
 where we use the fact that the inputs $x_i, y_i$ and $a_r, u_i(\tau)$ are all bounded by some constants, and the derivative of $\sigma$ is also bounded by a constant (e.g., sigmoid).
 
@@ -196,7 +216,7 @@ Taken together, we have shown that if $m$ is large enough, then $H(t)$ will stay
 
 \subsubsection{Implications}
 
-The dynamics of network outputs are governed by the following approximation using the NTK matrix
+The dynamics of network outputs are governed by the following approximation using the NTK matrix $H^{\star}$:
 \[ \frac {d u(t)} {d t} \approx - H^{\star} (u(t) - y) \]
 We'll use this to describe two implications:
 i) Convergence to global minima;
@@ -219,7 +239,7 @@ The above implies that each component of $u(t) - y$ projected to eigenvector $v_
 
 Also notice that the eigenvectors $\set{v_i}_i$ form an orthonormal basis.
 Since we know that each component converges to zero, together they imply that $u(t) - y$ must also converge to zero.
-This shows that the outputs will eventually converge to the training labels, meaning the training loss will go to zero.
+\hl{This shows that the outputs will eventually converge to the training labels, meaning the training loss will go to zero.}
 
 Next, we can see that each component goes to zero at different rates.
 For larger eigenvalues, the convergence is faster.
@@ -227,10 +247,8 @@ Hence in order to have fast convergence, we would like the projections of the la
 
 For a set of labels, if they align with top eigenvectors, then gradient descent converges quickly.
 On the other hand, if the projections are uniform, or aligns with eigenvectors with small eigenvectors, then gradient descent converges with a slow rate.
-Below, we compare convergence rates of gradient descent between using original labels, random labels, and worst-case labels.
-Data: two classes of MNIST.
-Model: $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
-%\todo{add an illustration}
+In Figure \ref{fig:ntk_eig}, taken from \cite{neyshabur2017exploring}, we compare convergence rates of gradient descent between using original labels, random labels, and worst-case labels.
+This experiment is performed to separate two classes of digits from MNIST, and it uses the forward model as $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
 
 \begin{figure}
     \centering
@@ -242,7 +260,7 @@ Model: $f(a, w) = \frac 1 {\sqrt m} \sum_{i=1}^m a_i \sigma'(w_i^{\top} x)$.
         \centering
         \includegraphics[width=0.75\linewidth]{figures/randomlabel2.png}
     \end{minipage}
-    \caption{Illustration of the loss and the projected values onto the eigenspace.}
+    \caption{Illustration of the loss and the projected values onto the eigen-space.}
     \label{fig:ntk_eig}
 \end{figure}
 
@@ -323,7 +341,8 @@ Then after $T = \Theta(\frac {(\alpha \delta)^{-1}} {\eta})$ iterations, we have
 \end{align}
 \end{theorem}
 
-\subsubsection{Error dynamics}
+\subsubsection{Error dynamics (optional)}
+
 Based on the update rule \eqref{eq_Et_1} for $E_t$, we have that
 \[ \bignormFro{E_{t+1}}^2 = \bignormFro{E_t}^2 - 2\eta \inner{E_t}{(\id - \id_{u^{\star}}) M_t U_t} + \eta^2 \bignormFro{(\id - \id_{u^{\star}}) M_t U_t }^2 \]
 When $\eta$ is sufficiently small, and $\bignormFro{M_t}, \bignorms{U_t}$ are both bounded from above, the third term on the right-hand side is negligible compared to the second term.
@@ -401,7 +420,7 @@ Therefore, we can conclude that
     &\le (1 + 2\eta\delta) \bignorms{E_t} + 2\eta\delta \bignorm{r_t}
 \end{align*}
 
-\subsubsection{Signal dynamics}
+\subsubsection{Signal dynamics (optional)}
 
 Next, we show that
 \begin{align}
