@@ -98,7 +98,7 @@ In summary, the learning dynamics are captured by a symmetric matrix $H(t)$.
 Now, how does the NTK arise?
 We will define an ultra-wide neural net whose width goes to infinity.
 In the limit, it can be shown that the matrix $H(0)$ remains constant during training, i.e., equal to $H(0)$.
-Moreover, under a random initialization of parameters, $H(0)$ converges to a deterministic kernel matrix $H^{\star}$ --- the Neural Tangent Kernel (NTK).
+Moreover, under a random initialization of parameters, $H(0)$ converges to a deterministic kernel matrix $H^{\star}$, the neural tangent kernel (NTK).
 \end{proof}
 
 \subsubsection{Definition}
@@ -150,13 +150,15 @@ This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
 
 \begin{example}[Kernel ridge regression]
 One way to apply the above kernel feature map is via kernel ridge regression (KRR), which learns a function in the associated reproducing kernel Hilbert space (RKHS) by solving
-\[ \min_{f \in \mathcal{H}} \sum_{i=1}^n (f(x_i)-y_i)^2 + \lambda \bignorm{f}_{\mathcal{H}}^2, \]
+\begin{align}
+    \min_{f \in \mathcal{H}} \sum_{i=1}^n (f(x_i)-y_i)^2 + \lambda \bignorm{f}_{\mathcal{H}}^2, \label{eq_obj_H}
+\end{align}
 where $\lambda>0$ is a regularization parameter.
 Based on the representer theorem, the optimal solution admits the finite-dimensional form
 \[ f(x) = \sum_{i=1}^n \alpha_i k(x_i,x), \]
 for some coefficients $\alpha \in \mathbb{R}^n$.
 Let $K \in \mathbb{R}^{n \times n}$ be the kernel matrix with $K_{i, j} = k(x_i,x_j)$, and let $y = (y_1,\dots,y_n)^\top$.
-Substituting the representation into the objective gives the quadratic problem
+Substituting the representation into objective \eqref{eq_obj_H} above gives the quadratic problem---specifically, setting $\bignorm{f}_\cH^2 = \alpha^{\top} K \alpha$ gives
 \[ \min_{\alpha\in\real^n} \bignorm{K\alpha - y}^2 + \lambda \alpha^\top K \alpha, \]
 whose solution is $\alpha = (K + \lambda \id)^{-1} y.$
 
@@ -245,10 +247,10 @@ Now we consider the dynamics of $u(t)$ on each eigenvector separately.
 Consider one eigenvector $v_i$ for instance.
 We have
 \[ \frac {d v_i^{\top} u(t)} {d t} \approx - v_i^{\top} H^{\star} (u(t) - y) = - \lambda_i v_i^{\top} u(t) + \lambda_i v_i^{\top} y, \]
-which is equivalent to
+which is equivalent to (since $y$ does not depend on $u(t)$)
 \[ \frac {d v_i^{\top} (u(t) - y)} {d t} = - \lambda_i v_i^{\top} (u(t) - y) \]
 One function that satisfies this differential equation is when
-\[ v_i^{\top} (u(t) - y) = \exp(- \lambda_i t) \]
+\[ v_i^{\top} (u(t) - y) = \exp(- \lambda_i t), \text{ for every } i = 1, 2, \dots, n. \]
 Notice that $u(t) - y$ is the difference between predictions and training labels at time $t$.
 
 We would like to show that the difference converges to zero when $t$ is large.
@@ -295,9 +297,18 @@ Suppose $n$ is smaller than the dimension of $w \in \real^d$.
 Suppose $w_0 = 0$.
 Then, given that $\nabla \ell(w_t) = \frac 2 n\sum_{i=1}^n (x_i^{\top} \beta - y_i) x_i$, $w_{t+1}$ will always lie inside the span of $\set{x_1, x_2, \dots, x_n}$, whose dimension is smaller than $d$.
 In other words, gradient descent searches inside a space whose dimension is much smaller than the actual dimension of the entire space.
+
+To analyze convergence, let $u_t = Xw_t$ be the predictions at time $t$. Multiplying the update rule by $X$, we get:
+\[ u_{t+1} = u_t - \eta XX^\top(u_t - y) \]
+Subtracting $y$ from both sides, the residual error $r_t = u_t - y$ evolves as:
+\[ r_{t+1} = (I - \eta K)r_t \]
+where $K = XX^\top \in \mathbb{R}^{n \times n}$.
+Thus, if the step size satisfies $\eta < 2/\lambda_{\max}(K)$, then the residual error at step $t$ satisfies:
+\[ \|u_t - y\|^2 \le (1 - \eta \lambda_{\min}(K))^{2t} \|u_0 - y\|^2 \]
+In the over-parameterized case ($d > n$), if the rank of $X$ is full (equal to $n$), then $\lambda_{\min}(K) > 0$, and the training error converges to zero at a geometric rate.
 \end{example}
 
-Next we write the problem setup.
+Next, we generalize the above to a matrix factorization setup.
 Suppose there is an underlying rank-$r$ matrix $X^{\star} \in \real^{d \times d}$.
 In particular, for the illustration of the analysis, we shall focus on the case of $X^{\star}$ being positive semi-definite.
 As for the input to the problem, suppose we have $m$ random Gaussian matrices whose entries are all drawn from $N(0, 1)$, denoted as $A_1, A_2, \dots, A_m$, all with dimension $d$ by $d$.
@@ -485,7 +496,7 @@ Meanwhile, $r_t$ grows by a rate of $1 + O(\eta)$, when it is still bounded away
 
 \subsection{Benign overfitting (Lecture 13)}
 
-Benign overfitting represents yet another approach to tackle the mystery behind the generalization of deep neural networks \citep{bartlett2020benign}.
+Benign overfitting represents yet another approach to explain the strong generalization of deep neural networks \citep{bartlett2020benign}.
 The basic hypothesis behind \hl{benign overfitting} stipulates that for a prediction rule $\hat f$, we can decompose it into
 \[ \hat f = \hat f_0 + \Delta,  \]
 where $\hat f_0$ is a simple component useful for prediction, $\Delta$ is a useful component useful for benign overfitting.
