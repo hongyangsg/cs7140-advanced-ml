@@ -134,7 +134,7 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
 
 \newpage
 \paragraph{Problem 2 (30 points)}
-\begin{enumerate}[label=(\alph*)] 
+\begin{enumerate}[label=(\alph*)]
     \item {(10 points)} Load the MNIST dataset from pytorch. Here is an example code snippet for loading the dataset into pytorch. 
 
     \begin{lstlisting}
@@ -175,23 +175,35 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
 \paragraph{Problem 3 (20 points)}
 Recall that for a two-layer neural network with activation function $\sigma$, the neural tangent kernel (NTK) at $x_i, x_j$ is given as:
 \[ H_{i,j}^\star = x_i^Tx_j\cdot \mathbb{E}_{w\sim \cN(0, \id)}[\sigma'(w^{\top} x_i)\cdot\sigma'(w^{\top} x_j)]. \]
-When $\sigma(z) = \max (0,z)$ is the ReLU function, show that
-\[ H_{i,j}^\star = x_i^{\top} x_j\cdot \frac{\pi - \theta}{2\pi}, \]
-where $\theta$ denote the angle between $x_i$ and $x_j$.
+\begin{itemize}
+    \item (10 points) When $\sigma(z) = \max (0,z)$ is the ReLU function, show that
+    \[ H_{i,j}^\star = x_i^{\top} x_j\cdot \frac{\pi - \theta}{2\pi}, \]
+    where $\theta$ denote the angle between $x_i$ and $x_j$.
+%Then in the above Problem 2, calculate $H_{i,j}^{\star}$ between $100$ randomly-sampled samples from the training dataset.
+%Examine the $H^{\star}$ matrix and comment on your findings.
 
-Then in the above Problem 2, calculate $H_{i,j}^{\star}$ between $100$ randomly-sampled samples from the training dataset.
-Examine the $H^{\star}$ matrix and comment on your findings.
+    \item (10 points) Next, describe how to apply this kernel to solve a regression problem.
+
+    \item (5 bonus points) When the size of the dataset is too large, the kernel matrix $K$ can become too expensive to compute, as it requires computing every entry of an $n$ by $n$ matrix. Instead, an alternative idea to solve this problem is via dimensionality reduction, otherwise known as random projection. Can you work out the detailed procedure for applying random projection to kernel ridge regression?
+\end{itemize}
 
 \newpage
 \paragraph{Problem 4 (30 points)}
 In this problem, you will work on implementing the nuclear-norm regularization algorithm for matrix completion, using a gradient-descent solver.
 
-For this experiment, you can work on a synthetic dataset.
-That is, generate a low-rank matrix $M$ with dimension $d_1 \times d_2$, with the rank of $M$ being $r$.
-Then, mask out (say, $90\%$ of the entries of $M$) and use the remaining entries as the observed set.
-Lastly, implement the gradient descent algorithm for matrix completion with a nuclear-norm regularization penalty added to the mean squared objective function.
-Vary the the regularization level parameter for adjusting the norm-norm regularization.
-Report the mean-squared reconstruction error.
+\begin{itemize}
+    \item (10 points) For a positive semidefinite matrix $X$, verify that the nuclear norm of $X$ is equal to the trace of $X$.
 
-Repeat the same training procedure three times, and report the mean and standard deviations from the trained model outcomes.
+    \item (20 points) For this part, you can work on a synthetic dataset.
+    That is, generate a low-rank matrix $M$ with dimension $d_1 \times d_2$, with the rank of $M$ being $r$.
+    Then, mask out (say, $90\%$ of the entries of $M$) and use the remaining entries as the observed set.
+    Lastly, implement the gradient descent algorithm for matrix completion with a nuclear-norm regularization penalty added to the mean squared objective function.
+    Vary the the regularization level parameter for adjusting the norm-norm regularization.
+    Report the mean-squared reconstruction error.
+    
+    Repeat the same training procedure three times, and report the mean and standard deviations from the trained model outcomes.
+
+    [Hint: use the fact that the gradient of the nuclear norm of a matrix $X$ is equal to $U V^{\top}$, where $X = U D V^{\top}$ is the singular value decomposition of a matrix $X$.]
+\end{itemize}
+
 \end{document}

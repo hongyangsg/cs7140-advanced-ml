@@ -131,7 +131,7 @@ This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
 \begin{example}[Two-layer ReLU networks with second-layer fixed]
     Consider a two-layer network $f(x) = \frac{1}{\sqrt{m}} \sum_{r=1}^m a_r \sigma(w_r^\top x),$
     where $\sigma(z)=\max(0,z)$, $a_r \in \set{\pm1}$, and $w_r(0) \sim \mathcal{N}(0, \id_d)$. For ReLU, the derivative is $\sigma'(z) = \mathbbm{1}_{z > 0}.$
-    Hence, the NTK between two inputs $x, x'$ is
+    Hence, the kernel map between two inputs $x, x'$ is
     \[ H^\star(x,x') = x^\top x' \mathbb{E}_{w \sim \mathcal{N}(0, \id_d)} \big[ \mathbbm{1}_{w^\top x > 0} \cdot \mathbbm{1}_{w^\top x' > 0} \big]. \]
 
     Let $\theta$ denote the angle between $x$ and $x'$ such that $\cos \theta = \frac{x^\top x'}{\bignorm{x}\cdot \bignorm{x'}}.$
@@ -149,7 +149,7 @@ This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
 \end{example}
 
 \begin{example}[Kernel ridge regression]
-One way to apply the above kernel definition is via kernel ridge regression (KRR), which learns a function in the associated reproducing kernel Hilbert space (RKHS) by solving
+One way to apply the above kernel feature map is via kernel ridge regression (KRR), which learns a function in the associated reproducing kernel Hilbert space (RKHS) by solving
 \[ \min_{f \in \mathcal{H}} \sum_{i=1}^n (f(x_i)-y_i)^2 + \lambda \bignorm{f}_{\mathcal{H}}^2, \]
 where $\lambda>0$ is a regularization parameter.
 Based on the representer theorem, the optimal solution admits the finite-dimensional form
@@ -160,11 +160,13 @@ Substituting the representation into the objective gives the quadratic problem
 \[ \min_{\alpha\in\real^n} \bignorm{K\alpha - y}^2 + \lambda \alpha^\top K \alpha, \]
 whose solution is $\alpha = (K + \lambda \id)^{-1} y.$
 
-For a new input $x$, the prediction is $f(x) = k_x^\top \alpha$, where $k_x = \big(k(x_1,x),\dots,k(x_n,x)\big)^\top$.
-In the NTK regime, the kernel $k(x,x')$ is given by the neural tangent kernel $H^\star(x,x')$. Training a sufficiently wide neural network with squared loss is equivalent to performing kernel ridge regression with kernel matrix $H^\star$.
+For a new input $x$, the prediction is $f(x) = k_x^\top \alpha$, where $k_x = \big(k(x_1, x),\dots,k(x_n, x)\big)^\top$.
+In the NTK regime, the kernel $k(x,x')$ is given by the neural tangent kernel $H^\star(x, x')$. Training a sufficiently wide neural network with squared loss is equivalent to performing kernel ridge regression with kernel matrix $H^\star$.
+
+The feature map under the NTK is given by $\big[\frac{a_1 \sigma'(w_1(0)^{\top} x_i)}{\sqrt m} x_i, \dots, \frac{a_m \sigma'(w_m(0)^{\top} x_i)}{\sqrt m} x_i\big]$, for every $i = 1, 2, \dots, n$.
 \end{example}
 
-\subsubsection{Convergence analysis}
+\subsubsection{Convergence analysis (optional)}
 
 Based on the NTK defined above, we now show that for this particular initialization, the neural network stays close to initialization long enough so that the loss decreases to a sufficiently low level.
 There are essentially two steps here:
@@ -320,7 +322,7 @@ We shall restrict the analysis to the rank-$1$ case where $r = 1$, where we can 
 Let $\id_{u^{\star}} = \id - \frac {u^{\star} {u^{\star}}^{\top}} {\bignorm{u^{\star}}^2}$.
 For simplicity, let's take the norm of $u^{\star}$ as $1$.
 Then, we decompose the iterates $U_t$ into two parts into the subspace of $u^{\star}$ and its complement:
-\begin{align*} 
+\begin{align*}
     U_t &= u^{\star} {u^{\star}}^{\top} U_t + (\id - \id_{u^{\star}} {u^{\star}}^{\top}) U_t \\
         &\define u^{\star} r_t^{\top} + E_t,
 \end{align*}
@@ -340,6 +342,14 @@ A set of linear measurement matrices $A_1, \dots, A_m$ satisfies $(r, \delta)$-r
 \begin{align}\label{eq_rip}
     (1 - \delta) \bignormFro{X}^2 \le \frac 1 m \sum_{i=1}^m \inner{A_i}{X}^2 \le (1 + \delta) \bignormFro{X}^2
 \end{align}
+The central thesis is to show a spectral separation between $E_t$ and $U_t$.
+For an illustration, see Figure \ref{fig_spectral_gap}, taken from \cite{li2018algorithmic}.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\linewidth]{figures/spectral_gap.png}
+    \caption{Illustrating the spectral separation between $E_t$ and $U_t$ during the gradient descent dynamic in the case of over-parametrized rank-$1$ matrix sensing.}
+    \label{fig_spectral_gap}
+\end{figure}
 In the following, we shall assume that the set of measurement matrices satisfies $(4, \delta)$-RIP with $\delta \le c$ (for some small enough constant $c$).
 One corollary of the above definition is that for any matrices $X, Y \in \real^{d \times d}$ with rank at most $r$, we also have:
 \begin{align}\label{eq_rip_cross} \bigabs{ \frac 1 m \sum_{i=1}^m \inner{A_i}{X} \inner{A_i}{Y} - \inner{X}{Y} } \le \delta \bignormFro{X} \bignormFro{Y}
@@ -472,3 +482,75 @@ The above suggests that $r_t$ will eventually drift towards a vector whose norm 
 
 Putting things together, we essentially showed that $E_t$ will remain relatively smaller than $r_t$, since $E_t$ only grows by a rate of $1 + \eta \delta$.
 Meanwhile, $r_t$ grows by a rate of $1 + O(\eta)$, when it is still bounded away from $1$.
+
+\subsection{Benign overfitting (Lecture 13)}
+
+Benign overfitting represents yet another approach to tackle the mystery behind the generalization of deep neural networks \citep{bartlett2020benign}.
+The basic hypothesis behind \hl{benign overfitting} stipulates that for a prediction rule $\hat f$, we can decompose it into
+\[ \hat f = \hat f_0 + \Delta,  \]
+where $\hat f_0$ is a simple component useful for prediction, $\Delta$ is a useful component useful for benign overfitting.
+While $\Delta$ is not useful for prediction, it is benign.
+In the setting of over-parameterized matrix sensing from the previous section, we see that $u^{\star }{r_t}^{\top}$ corresponds to $\hat f_0$, whereas $E_t$ relates to $\Delta$.
+
+To better understand the phenomenon of benign overfitting, we shall now consider the case of linear regression.
+\begin{itemize}
+    \item We denote the covariates as $x \in \real^d$ and the label as $y \in \real$.
+    \item We assume that $x$ is sub-Gaussian, meaning that there exists $c > 0$ such that $\Pr\left[\bignorm{x}^2 > c \ex{\bignorm{x}^2}\right] \le \delta$.
+    Moreover, $\ex{y \mid x} = x^{\top} \theta^{\star}$.
+    \item Let us define
+    \begin{align*}
+        \Sigma &= \ex{x x^{\top}} = \sum_{i=1}^d \lambda_i v_i v_i^{\top}, \text{ for } i = 1, 2, \dots, d \\
+        \theta^{\star} &= \arg \min_{\theta} \ex{(y - x^{\top} \theta)^2 } \\
+        \sigma^2 &= \ex{(y - x^{\top} \theta^{\star})^2}
+    \end{align*}
+\end{itemize}
+
+A key concept here to understand benign overfitting is the \emph{minimum norm interpolator}.
+Let $X \in \real^{n \times d}$ denote the features of $n$ samples.
+Let $y = [y_1, y_2, \dots, y_n]$ denote the labels.
+We have the estimator $\hat \theta = (X^{\top} X)^{\dagger} X^{\top} y$, which solves the problem
+\begin{align*}
+    \min_{\theta} & \bignorm{\theta}^2 \\
+    \mbox{s.t.} & \bignorm{X \theta - y}^2 = \min_{\theta'} \bignorm{X \theta' - y}^2
+\end{align*}
+
+Now we define the excess prediction risk of $\hat \theta$ as
+\begin{align*}
+    R(\hat \theta) &\define \exarg{x, y}{(y - x^{\top} \hat \theta)^2} - \min_{\theta} \exarg{x, y}{(y - x^{\top} \theta)^2} \\
+    & = \exarg{x, y} { (y - x^{\top} \hat \theta)^2 - (y - x^{\top} \theta^{\star})^2 } \\
+    & = (\hat \theta - \theta^{\star})^{\top} \Sigma (\hat \theta - \theta^{\star}),
+\end{align*}
+where we are using the fact that $\ex{xx^{\top}} = \Sigma$ and $\ex{y | x} = x^{\top}\theta^{\star}$.
+Therefore, $\Sigma$ determines the importance of parameter directions.
+Here is the question: when can the label noise be hidden in $\hat\theta$ without hurting the prediction accuracy?
+
+\begin{example}[Spiked covariance]
+    Consider a linear regression setting where the number of features $p$ is much larger than the number of samples $n$.
+    Suppose the covariance matrix $\Sigma$ of data has a Spiked structure with one giant eigenvalue, $\lambda_1 = 1$ (the signal direction), plus a long tail of tiny eigenvalues, $\lambda_2 = \dots = \lambda_p = \frac{1}{p}$ (the noise directions).
+    As $p$ goes to infinity, the effective rank of the data becomes very large.
+    With the minimum-norm interpolator, on the other hand, the model uses the first dimension to capture the true signal, and the remaining $p - 1$ dimensions to absorb the noise level.
+    Because the noise is spread over many dimensions, the amount of noise assigned to any single direction is negligible.
+    As a result, the excess risk goes to zero even though the model perfectly interpolated noisy data.
+\end{example}
+
+The following result, by \citet{bartlett2020benign}, captures this example in more generality.
+There exists universal constants $b, c$ such that the excess risk of the minimum norm interpolator satisfies:
+\[ R(\hat \theta) \le c \left( \textup{bias}(\theta^{\star}, \Sigma, n) + \sigma^2 \left( \frac {k^{\star}} {n } + \frac n {R_{k^{\star}}(\Sigma)} \right) \right), \]
+where $k^{\star} = \min \set{k \ge 0 : r_k(\Sigma) \ge bn}$, and
+\begin{align*}
+    r_k(\Sigma) &\define \frac {\sum_{i > k} \lambda_i } {\lambda_{k+1}} \\
+    R_k(\Sigma) &\define \frac {\Big(\sum_{i > k} \lambda_i\Big)^2} {\sum_{i > k} \lambda_i^2}.
+\end{align*}
+The bias is given by
+\begin{align*}
+    \textup{\bias}(\theta^{\star}, \Sigma, n)
+    = \bignorm{\theta^{\star}_{k+1 : \infty}}_{\Sigma_{k+1 : \infty}}^2 + \bignorm{\theta^{\star}_{1 : k}}^2_{\Sigma^{-1}_{1 : k}} \left( \frac {\sum_{i > k} \lambda_i} n \right)^2
+\end{align*}
+Recall that the benign overfitting prediction rule $\hat f$ decomposes as $\hat f_0 + \Delta$.
+\begin{itemize}
+    \item $\hat f_0$ is the prediction component: $k^{\star}$-dimensional subspace corresponding to $\lambda_1, \dots, \lambda_{k^{\star}}$
+
+    \item $\Delta$ is the benign overfitting component: orthogonal subspace.
+    $\Delta$ is benign only if $R_{k^{\star}} \gg n$
+\end{itemize}
+In other words, to avoid harming prediction accuracy, the noise energy must be distributed across many unimportant directions.
