@@ -13,7 +13,7 @@ In particular, we shall begin by establishing the folklore intuition that the le
 This kind of folklore is especially intriguing in the context of deep networks, as these models have millions (and now billions) of parameters.
 However, this high complexity clearly does not explain/corroborate with the empirical results we typically see with supervised fine-tuning and in-context learning.
 
-\subsection{Neural tangent kernels (Lectures 10-11)}
+\subsection{Neural tangent kernels (Lectures 10-12)}
 
 %\subsubsection{Basics of kernel methods}
 The performance of a machine learning model breaks down into two parts:
@@ -125,8 +125,8 @@ Suppose we sample every $w_r(0)$ from a standard Gaussian distribution.
 In addition, suppose we sample $a_r$ uniformly between $\set{+1, -1}$.
 Then, one can view the above as the average of $m$ independent random variables.
 When $m$ becomes very large, then by the law of large numbers, the average is close to its expectation.
-This gives rise to the Neural Tangent Kernel evaluated at $x_i, x_j$ as follows:
-\[ H^{\star}_{i, j} = x_i^{\top} x_j \exarg{ w \sim \cN(0, \id)  } { \sigma'(w^{\top} x_i) \sigma'(w^{\top} x_j) } \]
+This gives rise to the neural tangent kernel evaluated at $x_i, x_j$ as follows:
+\begin{align} \label{eq_ntk_two} H^{\star}_{i, j} = x_i^{\top} x_j \exarg{ w \sim \cN(0, \id)  } { \sigma'(w^{\top} x_i) \sigma'(w^{\top} x_j) }. \end{align}
 
 \begin{example}[Two-layer ReLU networks with second-layer fixed]
     Consider a two-layer network $f(x) = \frac{1}{\sqrt{m}} \sum_{r=1}^m a_r \sigma(w_r^\top x),$
@@ -165,7 +165,8 @@ whose solution is $\alpha = (K + \lambda \id)^{-1} y.$
 For a new input $x$, the prediction is $f(x) = k_x^\top \alpha$, where $k_x = \big(k(x_1, x),\dots,k(x_n, x)\big)^\top$.
 In the NTK regime, the kernel $k(x,x')$ is given by the neural tangent kernel $H^\star(x, x')$. Training a sufficiently wide neural network with squared loss is equivalent to performing kernel ridge regression with kernel matrix $H^\star$.
 
-The feature map under the NTK is given by $\big[\frac{a_1 \sigma'(w_1(0)^{\top} x_i)}{\sqrt m} x_i, \dots, \frac{a_m \sigma'(w_m(0)^{\top} x_i)}{\sqrt m} x_i\big]$, for every $i = 1, 2, \dots, n$.
+Specifically, the feature map of any input $x_i$ under the two-layer ReLU NTK is given by $\big[\frac{a_1 \sigma'(w_1(0)^{\top} x_i)}{\sqrt m} x_i, \dots, \frac{a_m \sigma'(w_m(0)^{\top} x_i)}{\sqrt m} x_i\big]$, for every $i = 1, 2, \dots, n$.
+The $H^{\star}$ kernel is given in equation \eqref{eq_ntk_two}.
 \end{example}
 
 \subsubsection{Convergence analysis (optional)}
@@ -283,7 +284,7 @@ This experiment is performed to separate two classes of digits from MNIST, and i
     \label{fig:ntk_eig}
 \end{figure}
 
-\subsection{Implicit regularization (Lectures 11-12)}
+\subsection{Implicit regularization (Lectures 13)}
 
 Recall that we discussed the matrix completion problem in Section \ref{sec_mc}.
 Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting.
@@ -308,10 +309,18 @@ Thus, if the step size satisfies $\eta < 2/\lambda_{\max}(K)$, then the residual
 In the over-parameterized case ($d > n$), if the rank of $X$ is full (equal to $n$), then $\lambda_{\min}(K) > 0$, and the training error converges to zero at a geometric rate.
 \end{example}
 
+\begin{example}[Gradient descent for minimizing smooth functions]
+    The above is part of a broader phenomenon concerning the minimization of a smooth, possible nonconvex, unconstrained function.
+
+    A function $f: \real^d \rightarrow \real$ is smooth if the gradient of $f$ satisfies $\bignorm{\nabla f(x) - \nabla f(y)} \le C \cdot \bignorm{x - y}$ for a fixed constant $C > 0$, given any $x, y$ within some continuous domain.
+
+    One can show that gradient descent converges to a stationary point $x$ such that $\bignorm{\nabla f(x)} \le \epsilon$ within $O(\epsilon^{-2})$ iterations \citep{ghadimi2013stochastic}, where the big-O notation folds the diameter of the search space and other problem-dependent constants including the smoothness parameter $C$.
+\end{example}
+
 Next, we generalize the above to a matrix factorization setup.
 Suppose there is an underlying rank-$r$ matrix $X^{\star} \in \real^{d \times d}$.
 In particular, for the illustration of the analysis, we shall focus on the case of $X^{\star}$ being positive semi-definite.
-As for the input to the problem, suppose we have $m$ random Gaussian matrices whose entries are all drawn from $N(0, 1)$, denoted as $A_1, A_2, \dots, A_m$, all with dimension $d$ by $d$.
+As for the input to the problem, suppose we have $m$ random Gaussian matrices whose entries are all drawn from $\cN(0, 1)$, denoted as $A_1, A_2, \dots, A_m$, all with dimension $d$ by $d$.
 In addition, suppose they are symmetric, for example, we could transform each $A_i$ as $(A_i + A_i^{\top}) / 2$.
 Let $y_i = \inner{A_i} {UU^{\top}}$, for $i = 1, 2, \dots, n$.
 
@@ -565,3 +574,250 @@ Recall that the benign overfitting prediction rule $\hat f$ decomposes as $\hat 
     $\Delta$ is benign only if $R_{k^{\star}} \gg n$
 \end{itemize}
 In other words, to avoid harming prediction accuracy, the noise energy must be distributed across many unimportant directions.
+
+\subsection{PAC-Bayes generalization bounds (Lectures 13-14)}
+
+Next, we present a PAC-Bayes generalization bound that depends on the trace of the Hessian.
+Our bound can be related to the notion of trace norm, which can be viewed as a measure of model complexity.
+For instance, in the context of matrix recovery, the trace norm refers to the sum of the singular values of a matrix and links to the recovery quality of a matrix completion algorithm \citep{srebro2005rank}.
+%Its use as a generalization measure for fine-tuning has not been studied before.
+
+To motivate this analysis, let's suppose that we have a pretrained model and we would like to fine-tune this model on a downstream task of interest.
+The weights of this pretrained model can be viewed as our prior belief of the target hypothesis in the PAC-Bayes analysis.
+Once we have learned a model through fine-tuning the pretrained model on the target task data, we can view this fine-tuned as our adjusted posterior in PAC-Bayes analysis.
+
+More precisely, let $\cD \subseteq \cX \times \cY$ be an unknown data distribution, supported on the feature space $\cX$ and the label space $\cY$.
+Given $n$ random samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$ drawn from $\cD$, the empirical loss measured by loss function $\ell$ applied to a model $f_W$ with $W \in \real^d$ is:
+\[ \hat L(W) = \frac 1 n \sum_{i = 1}^n \ell(f_W(x_i), y_i). \]
+The population loss is %given by the expected loss of an unseen sample $(x, y)$ drawn from $\cD$
+\[ L(W) = \exarg{(x, y) \sim \cD}{\ell(f_W(x), y)}. \]
+It is sufficient to think that the empirical loss is less than the population loss, and the goal is to bound the gap between $\hat L(W)$ and $L(W)$ from above \citep{shalev2014understanding}.
+With this setting in mind, we now describe several PAC-Bayesian bounds, which incorporate the prior into the analysis without assuming that the prior is ``correct.''
+
+\paragraph{Occam bound:} Here we assume a countable hypothesis class, and the algorithm outputs a single hypothesis.
+More specifically, let $\cH$ be a countable hypothesis class.
+Let the loss function be bounded $\ell(z, h) \le [0, 1]$.
+Let $\cP$ be any prior distribution over $\cH$.
+Then with probability at least $1 - \delta$, we have that
+\[ \forall h \in \cH, L(h) \le \hat L(h) + \sqrt{\frac {\log\big(\frac 1 {\cP(h)}\big) + \log(\delta^{-1})} {2n}} \]
+
+\begin{proof}
+By Hoeffding's inequality, we have that for any fixed $h\in \cH$:
+\[ \Pr[L(h) \ge \hat L(h) + \epsilon] \le \exp(-2n \epsilon^2) \]
+If we set the RHS to $\delta \cP(h)$, then we get that with probability at least $\delta \cP(h)$,
+\[ L(h) \ge \hat L(h) + \sqrt{ \frac {\log\Big( \frac 1 {\delta \cP(h)}\Big)} {2n}} \]
+Applying the union bound across all of $h \in \cH$, we have that with probability at most $\delta$,
+there exists an $h \in \cH$ such that the above is true.
+By taking the contra-positive, we have derived Occam's bound.
+\end{proof}
+
+There are two things lacking about the Occam bound.
+It only applies to countable $\cH$, which does not include the set of all weight vectors, for example.
+It only embraces half of the Bayesian story.
+While we have a prior $\cP(h)$, only a single $h \in \cH$ is returned rather than a full posterior $\cQ(h)$.
+
+Next, we show the PAC-Bayesian theorem \citep{mcallester1998some}, which fixes the above problem.
+Let the loss function be bounded between zero and one.
+Let $\cP$ be any prior distribution over $\cH$.
+Let $\cQ$ be any posterior distribution over $\cH$, which is a function of the training data.
+Then with probability at least $1 - \delta$,
+\begin{align}
+    \exarg{h \sim \cQ}{L(h)} \le \exarg{h \in \cQ}{\hat L(h)} + \sqrt{\frac {KL(\cQ || \cP) + \log(2n \delta^{-1})} {2(n-1)}}, \label{eq_pac_bayes}
+\end{align}
+which holds for all posterior $\cQ$.
+
+\begin{example}[Supervised fine-tuning of language models]
+    In the case of SFT, one can set both $\cP$ and $\cQ$ as Gaussian distribution with variance $\sigma^2$, centered at the pretrained and fine-tuned models, respectively.
+\end{example}
+
+\begin{proof}
+The first step is to derive the so-called Donsker-Varadhan change-of-measure result.
+For a prior $\cP$, the change of measure inequality states that for any measure $\cQ$,
+\begin{align}
+    \exarg{f\sim\cQ}{\phi(f)} \le \log \exarg{f \in \cP}{\exp(\phi(f))} + D_{KL}(\cQ || \cP), \label{eq_dv}
+\end{align}
+for any function $\phi: \cH \rightarrow \real$.
+To show equation \eqref{eq_dv}, let us define a distribution $\cP_G$ via its density with respect to $\cP$ as:
+\[ \frac {d\cP_{G}} {d\cP} (f) = \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))} } \]
+This is called the Gibbs measure.
+Notice that
+\begin{align*}
+    D_{KL}(\cQ || \cP) - D_{KL}(\cQ || \cP_G)
+    &= \int \left( \log\left(\frac {d \cQ} {d \cP}\right) - \log\left( \frac {d\cQ} {d \cP_G} \right) \right) d \cQ \\
+    &= \int \log\left( \frac {d \cP_G} {d \cP} \right) d \cQ \\
+    &= \exarg{f\sim\cQ}{\log\left( \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))}} \right)} \\
+    &= \exarg{f\sim\cQ}{\phi(f)} - \log \exarg{h\sim\cP}{\exp(\phi(h))}
+\end{align*}
+Thus,
+\begin{align*}
+    \log\exarg{h\sim\cP}{\exp(\phi(h))}
+    &= \exarg{f\sim\cQ}{\phi(f)} - D_{KL}(\cQ || \cP) + D_{KL}(\cQ || \cP_G) \\
+    &\ge \exarg{f\sim\cQ}{\phi(f)} - D_{KL}(\cQ || \cP),
+\end{align*}
+since the KL divergence is always non-negative.
+Notice that the inequality holds if and only if $\cQ = \cP_G$.
+
+Next, in order to prove McAllester's bound, we consider the function $2(n-1) (\Delta(f))^2$ as $\phi$, where $\Delta(f) = L(f) - \hat L_n(f)$.
+For a fixed $f$, we can bound $\Delta(f)$ using Hoeffding's inequality as:
+\begin{align}
+    \Pr[\abs{\Delta(f)} \ge \epsilon] \le 2\exp(-2n \epsilon^2), \label{eq_mgf_delta}
+\end{align}
+which holds for any positive $\epsilon < 1$.
+The second step is to turn equation \eqref{eq_mgf_delta} into a high-probability bound.
+We apply the Donsker-Varadhan change-of-measure, and get
+\begin{align*}
+    \exarg{f\sim\cP}{\exp\left(2(n-1) (\Delta(f))^2\right)}
+    \ge \exp\left( 2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} - D_{KL}(\cQ || \cP)\right)
+\end{align*}
+Let us take the expectation over the training sample set $S$ (recall that $\cQ$ depends on the training samples) on both sides and notice that the prior $\cP$ does not depend on the training samples.
+We get
+\begin{align*}
+    \exarg{S}{\exarg{h\sim\cP}{\exp(2(n-1) (\Delta(h))^2)}}
+    \ge \exarg{S}{\exp\left( 2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} - D_{KL}(\cQ || \cP)\right)}
+\end{align*}
+Therefore, we have
+\begin{align*}
+    \exarg{S}{\exp(2(n-1) (\Delta(f))^2)}
+    &= \int_{0}^{\infty} \Pr\left[\exp\left(2(n-1) (\Delta(f))^2\right) \ge s\right] ds \\
+    &\le 1 + \int_1^{\infty} \Pr\left[\bigabs{\Delta(f)} \ge \sqrt{\frac {\log(s)} {2(n-1)}}\right] ds \\
+    &\le 1 + \int_1^{\infty} 2\exp\left(-2n \cdot \frac {\log(s)} {2(n-1)}\right)  ds \\
+    & = 1 + 2(n-1) \le 2n
+\end{align*}
+As for the last step, we notice that
+\begin{align*}
+    -\int_1^{\infty} s^{-1 - \frac 1 {n-1}} ds
+    = -\int_1^{\infty}  d \left( (n-1) s^{-\frac 1 {n-1}} \right) = n-1
+\end{align*}
+Then, by Markov's inequality,
+\begin{align*}
+    \Pr\left[\exp\left(2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} - D_{KL}(\cQ || \cP)\right) \ge \frac {2n} {\delta}\right]
+    \le \delta
+\end{align*}
+That is, with probability at least $1 - \delta$,
+\[ 2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} \le \log\left(\frac {2n} {\delta}\right) + D_{KL}(\cQ || \cP) \]
+Using Jensen's inequality, the left is greater than \[2(n-1)\left(\exarg{f\sim\cQ}{\Delta(f)}\right)^2 \]
+Taking square root on both sides gives us the McAllester's bound.
+\end{proof}
+
+%\paragraph{PAC-Bayesian bound (Catoni):}
+Another version of the PAC-Bayesian theorem is shown by \cite{catoni2007pac} (see also Theorem 3.5, \cite{alquier2021user}).
+Suppose the loss function $\ell(f_W(x),y)$ lies in a bounded range $[0, C]$ given any $x\in\cX$ with label $y$.
+For any $\beta\in (0,1)$ and $\delta\in (0,1)$, with probability at least $1-\delta$, the following holds:
+\begin{equation}
+    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(KL(\cQ||\cP)+\log\frac{2 \sqrt n}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
+\end{equation}
+%which holds with probability $1 - \delta$ for any $\delta\in(0, 1)$ and $\beta \in (0, 1)$:
+%\begin{align}
+%    L_{\cQ}(W) \le \frac 1 {\beta} \hat L_{\cQ}(W) + \frac{C(KL(\cQ || \cP) + \log(\delta^{-1}))}{2\beta(1 - \beta) n}, \label{eq_pacbayes}
+%\end{align}
+where $\cP$ refers to the \textit{prior} distribution, $C$ refers to the upper bound on the loss value $\ell$.
+For analyzing fine-tuning, we view $\cP$ as centered at the pretrained model, with covariance matrix $\sigma^2 \id_p$.
+
+The proof sketch of equation \eqref{eq_pac} is similar to equation \eqref{eq_pac_bayes}, which leverages the Donsker-Varadyan change-of-measure.
+The difference is in how we approach step \eqref{eq_mgf_delta}.
+Here, instead, one can show a statement on the ``titled'' loss gap as
+\begin{align}
+    \exarg{S}{\exp(a ( L(f) - \beta \hat L(f)) )} \le \exp\left( \frac {a^2 \beta^2 C^2} {8n} \right) \label{eq_titled_exp}
+\end{align}
+The first step towards the above is to write $L(f) - \beta \hat L(f)$ as
+\begin{align*}
+    L(f) - \beta \hat L(f) = (1 - \beta) L(f) + \beta(L(f) - \hat L(f))
+\end{align*}
+Thus, 
+\begin{align*}
+    \exarg{S}{\exp(a (L(f) - \beta \hat L(f)))} &= \exp(a (1 - \beta) L(f)) \cdot \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))} \\
+    &\le \exp(a (1 - \beta) L(f)) \cdot \exp\left(\frac{a^2 \beta^2 C^2}{8n}\right) \\
+    &\le \exp\left( a(1 - \beta) C + \frac{a^2 \beta^2 C^2}{8n} \right) % \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))}
+\end{align*}
+By setting $a = O((1 - \beta) n / C)$, we can derive equation \eqref{eq_titled_exp}.
+The rest of the proof is based on applying the Donsker-Varadyan change-of-measure, and then turn the expectation into a high-probability bound.
+
+\subsection{Noise-sensitivity generalization bounds (Lecture 15)}
+
+Let $W$ be any learned hypothesis within the hypothesis space, denoted as $\cH$.
+This generalization bound will apply uniformly to $W$ within the hypothesis space.
+%assuming that $\cH$ is centered at the pretrained initialization and has a bounded radius of $r > 0$.
+We state this result, including the required assumptions, as follows.
+Assume that the loss function $\ell$ is bounded between $0$ and $C$ for a fixed constant $C > 0$ on the data distribution $\cD$.
+Suppose $\ell(f_W(\cdot), \cdot)$ is twice-differentiable in $W$ and the Hessian matrix $\nabla^2[\ell(f_W(\cdot), \cdot)]$ is Lipschitz continuous within the hypothesis space.
+Suppose for any $W$ in $\cH$, the trace norm of the Hessian is less than $\alpha$:
+\begin{align}
+    \alpha \define \max_{W\in\cH} \max_{(x, y) \sim \cD} \bigtr{\nabla^2 \ell(f_W(x), y)}, \label{eq_trace_norm}
+\end{align}
+    %(in the sense of equation \eqref{eq_trace_norm}), 
+and the $\ell_2$-norm of $W$ is at most $r$ for any $W \in \cH$.
+Then, for any $W$ in $\cH$, with probability at least $1 - \delta$ for any $\delta > 0$, the following must hold, for any $\epsilon$ close to zero:
+\begin{align}
+    L(W) \le (1 + \epsilon) \hat L(W) + (1 + \epsilon) \sqrt{\frac {C \alpha r^2}{n}} + O\Big(n^{-\frac 3 4}\log(\delta^{-1})\Big). \label{eq_main_1}
+\end{align}
+    %where the trace norm of the hypothesis space taken over the data distribution $\cD$ is given by
+
+An important takeaway of this bound is that we could now measure the RHS in practice, and this leads to a non-vacuous bound on the generalization error.
+%We demonstrate that the generalization bound of Theorem \ref{theorem_hessian} accurately correlates with empirical generalization errors.
+We experiment with seven methods, including fine-tuning with and without early stopping, distance-based regularization, label smoothing, mixup, etc.
+Figure \ref{fig:hessian_reg} shows that the Hessian measure (i.e., the second part of equation \eqref{eq_main_1}) correlates with the generalization errors of these methods.
+Second, we plot the Hessian measure (averaged over all layers) between fine-tuning with implicit (early stopping) regularization and explicit (distance-based) regularization.
+%We have also included training from scratch as a contrast illustration.
+We find that the Hessian measure is smaller for explicit regularization than implicit regularization.
+
+\begin{figure*}[!t]
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_indoor_3_2.pdf}
+        \caption{ResNet-50}\label{fig_reg_res1}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_caltech_3_2.pdf}
+        \caption{ResNet-50}\label{fig_reg_res2}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/intro_mrpc_3_2.pdf}
+        \caption{BERT-Base}\label{fig_reg_bert}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/average_di.pdf}
+        \caption{Average $\cD_i$}\label{fig_avg_d}
+    \end{subfigure}
+    \caption{\ref{fig_reg_res1}, \ref{fig_reg_res2}, \ref{fig_reg_bert}: The Hessian measures accurately correlate with empirical generalization errors for seven fine-tuning methods.
+    \ref{fig_avg_d}: $\cD_i$ is smaller for fine-tuning with explicit distance-based regularization than implicit early-stopped regularization.
+    Each dot represents the generalization error and the Hessian measures for a single fine-tuned model using a specific regularization method.}\label{fig:hessian_reg}
+\end{figure*}
+
+\paragraph{Proof Sketch:}
+We provide a high-level illustration of the proof of equation \eqref{eq_trace_norm}.
+Let $\cQ$ denote the \textit{posterior} distribution. Specifically, we consider $\cQ$ as being centered at the learned hypothesis $W$ (which could be anywhere within the hypothesis space), given by a Gaussian distribution $\cN(W, \sigma^2 \id_p)$, where $\id_p$ denotes the $p$ by $p$ identity matrix.
+Given a sample $U\sim \cN(0, \sigma^2\id_p)$, let the perturbed loss be given by 
+\begin{align}
+    \ell_{\cQ}(f_W(x), y) = \exarg{U}{\ell(f_{W + U}(x), y)}. \label{eq_lq}
+\end{align}
+Then, let $\hat L_{\cQ}(W)$ be the averaged value of $\ell_{\cQ}(f_W(\cdot), \cdot)$, taken over $n$ empirical samples from the training dataset.
+Likewise, let $L_{\cQ}(W)$ be the population average of $\ell_{\cQ}(f_W(\cdot), \cdot)$, in expectation over an unseen data sample from the underlying data distribution.
+
+
+
+By Taylor's expansion of $\ell_{\cQ}$, we show that:
+\begin{align}
+    L_{\cQ}(W) &= L(W) + \frac {\sigma^2} 2 \exarg{(x,y)\sim\cD}{\bigtr{\nabla^2 \ell(f_{W}(x), y)}} + O(\sigma^3) \label{eq_taylorh1}\\
+    \hat L_{\cQ}(W) &= \hat L(W) + \frac {\sigma^2} {2n} \sum_{i = 1}^n \bigtr{\nabla^2 \ell(f_W(x_i), y_i)} + O(\sigma^3). \label{eq_taylorh2}
+\end{align}
+Since the Hessian operator is Lipschitz continuous by assumption, we can bound the gap between the above two quantities with $\epsilon$-covering arguments. % (see Lemma \ref{lemma_union_bound} for the precise statement).
+By plugging in these results back to the PAC-Bayes bound of equation \eqref{eq_pac}, after some calculation, we can get:
+\begin{align}
+    L(W) \le \frac 1 {\beta} \hat L(W) + \frac{\sigma^2(1 - \beta) \alpha}{2\beta} + \frac{C r^2 / 2\sigma^2}{2\beta(1 - \beta) n} + O\left(\sigma^3 + \frac{\sigma^2 \sqrt p}{\sqrt n} + \frac{\log(\delta^{-1})}{n}\right). \label{eq_intermediate}
+\end{align}
+In particular, the above uses the fact that the $\ell_2$-norm of $W$ is less than $r$ for any $W \in \cH$. The KL divergence is discussed below.
+Suppose $\cP = N(X, \Sigma)$ and $\cQ = N(Y, \Sigma)$ are both Gaussian distributions with mean vectors given by $X\in\real^p, Y\in\real^p$, and population covariance matrix $\Sigma \in \real^{p \times p}$.
+The KL divergence between $\cP$ and $\cQ$ is equal to
+\begin{align*}
+    KL(\cQ||\cP) = \frac{1}{2}(X- Y)^\top \Sigma^{-1} (X - Y).
+\end{align*}
+Specifically, if $\Sigma = \sigma^2\id_p$, then the above simplifies to
+\begin{align*}
+    KL(\cQ||\cP) = \frac{\bignorms{X - Y}^2}{2\sigma^2}.
+\end{align*}
+
+By choosing $\sigma^2$ and $\beta$ to minimize equation \eqref{eq_intermediate}, we will obtain equation \eqref{eq_main_1}.
+This summarizes the high-level proof idea.
