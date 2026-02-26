@@ -160,7 +160,7 @@ for some coefficients $\alpha \in \mathbb{R}^n$.
 Let $K \in \mathbb{R}^{n \times n}$ be the kernel matrix with $K_{i, j} = k(x_i,x_j)$, and let $y = (y_1,\dots,y_n)^\top$.
 Substituting the representation into objective \eqref{eq_obj_H} above gives the quadratic problem---specifically, setting $\bignorm{f}_\cH^2 = \alpha^{\top} K \alpha$ gives
 \[ \min_{\alpha\in\real^n} \bignorm{K\alpha - y}^2 + \lambda \alpha^\top K \alpha, \]
-whose solution is $\alpha = (K + \lambda \id)^{-1} y.$
+whose solution is $\alpha = (K + \lambda \id)^{-1} y$ (assuming that $K$ is full-rank).
 
 For a new input $x$, the prediction is $f(x) = k_x^\top \alpha$, where $k_x = \big(k(x_1, x),\dots,k(x_n, x)\big)^\top$.
 In the NTK regime, the kernel $k(x,x')$ is given by the neural tangent kernel $H^\star(x, x')$. Training a sufficiently wide neural network with squared loss is equivalent to performing kernel ridge regression with kernel matrix $H^\star$.
@@ -287,11 +287,11 @@ This experiment is performed to separate two classes of digits from MNIST, and i
 \subsection{Implicit regularization (Lectures 13)}
 
 Recall that we discussed the matrix completion problem in Section \ref{sec_mc}.
-Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting.
+Now, we shall study the gradient descent dynamic of this problem in an over-parameterized setting, which generally refers to scenarios where the number of model parameters is far larger than the number of samples.
 
 \begin{example}[Linear regression]
-Suppose we are doing linear regression on $n$ input samples:
-\[ \ell(w) = \frac 1 n \sum_{i=1}^n (x_i^{\top} \beta - y_i) \]
+Suppose we are conducting linear regression on $n$ input samples:
+\[ \ell(w) = \frac 1 n \sum_{i=1}^n (x_i^{\top} w - y_i)^2 \]
 Consider gradient descent:
 \[ w_{t+1} = w_t - \eta \nabla \ell(w_t) \]
 Suppose $n$ is smaller than the dimension of $w \in \real^d$.
@@ -300,13 +300,13 @@ Then, given that $\nabla \ell(w_t) = \frac 2 n\sum_{i=1}^n (x_i^{\top} \beta - y
 In other words, gradient descent searches inside a space whose dimension is much smaller than the actual dimension of the entire space.
 
 To analyze convergence, let $u_t = Xw_t$ be the predictions at time $t$. Multiplying the update rule by $X$, we get:
-\[ u_{t+1} = u_t - \eta XX^\top(u_t - y) \]
+\[ u_{t+1} = u_t - \frac{2\eta} n XX^\top(u_t - y) \]
 Subtracting $y$ from both sides, the residual error $r_t = u_t - y$ evolves as:
-\[ r_{t+1} = (I - \eta K)r_t \]
-where $K = XX^\top \in \mathbb{R}^{n \times n}$.
-Thus, if the step size satisfies $\eta < 2/\lambda_{\max}(K)$, then the residual error at step $t$ satisfies:
-\[ \|u_t - y\|^2 \le (1 - \eta \lambda_{\min}(K))^{2t} \|u_0 - y\|^2 \]
-In the over-parameterized case ($d > n$), if the rank of $X$ is full (equal to $n$), then $\lambda_{\min}(K) > 0$, and the training error converges to zero at a geometric rate.
+\[ r_{t+1} = (\id - \frac {2\eta} n XX^{\top})r_t \]
+where $XX^\top \in \mathbb{R}^{n \times n}$.
+Thus, if the step size satisfies $\eta < 2/\lambda_{\min}(\frac {X X^{\top}} n)$, then the residual error at step $t$ satisfies:
+\[ \bignorm{u_t - y} \le \left(1 -  {2\eta} \lambda_{\min}\left(\frac {XX^{\top}} n\right)\right)^{t} \bignorm{u_0 - y} \]
+In the over-parameterized case ($d > n$), if the rank of $X$ is full (equal to $n$), then $\lambda_{\min}(XX^{\top} / n)$ is strictly bounded away from zero, and the training error converges to zero at a geometric rate.
 \end{example}
 
 \begin{example}[Gradient descent for minimizing smooth functions]
@@ -366,7 +366,7 @@ The central thesis is to show a spectral separation between $E_t$ and $U_t$.
 For an illustration, see Figure \ref{fig_spectral_gap}, taken from \cite{li2018algorithmic}.
 \begin{figure}
     \centering
-    \includegraphics[width=0.4\linewidth]{figures/spectral_gap.png}
+    \includegraphics[width=0.45\linewidth]{figures/spectral_gap.png}
     \caption{Illustrating the spectral separation between $E_t$ and $U_t$ during the gradient descent dynamic in the case of over-parametrized rank-$1$ matrix sensing.}
     \label{fig_spectral_gap}
 \end{figure}
@@ -550,7 +550,7 @@ Here is the question: when can the label noise be hidden in $\hat\theta$ without
     As $p$ goes to infinity, the effective rank of the data becomes very large.
     With the minimum-norm interpolator, on the other hand, the model uses the first dimension to capture the true signal, and the remaining $p - 1$ dimensions to absorb the noise level.
     Because the noise is spread over many dimensions, the amount of noise assigned to any single direction is negligible.
-    As a result, the excess risk goes to zero even though the model perfectly interpolated noisy data.
+    As a result, the excess risk goes to zero even though the model perfectly interpolated noisy data.\footnote{See also the celebrated Marchenko–Pastur semi-circle law, and its applications in wireless communication \citep{tulino2004random}.}
 \end{example}
 
 The following result, by \citet{bartlett2020benign}, captures this example in more generality.
@@ -575,7 +575,7 @@ Recall that the benign overfitting prediction rule $\hat f$ decomposes as $\hat 
 \end{itemize}
 In other words, to avoid harming prediction accuracy, the noise energy must be distributed across many unimportant directions.
 
-\subsection{PAC-Bayes generalization bounds (Lectures 13-14)}
+\subsection{PAC-Bayes generalization bounds (Lectures 14)}
 
 Next, we present a PAC-Bayes generalization bound that depends on the trace of the Hessian.
 Our bound can be related to the notion of trace norm, which can be viewed as a measure of model complexity.
