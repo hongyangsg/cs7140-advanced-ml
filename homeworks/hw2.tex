@@ -157,6 +157,7 @@ In this problem, you will work on applications of the Chernoff Bound. For each q
     \end{lstlisting}
     
     Next, implement a fully-connected neural network with two layers, including one layer for producing the output logits in PyTorch.
+    Specifically, specify two fully-connected layers when you set up the network architecture in PyTorch initialization.
     Report the final test accuracy.
     Plot the training loss and test accuracy curves.
     
@@ -202,6 +203,7 @@ In this problem, you will work on implementing the nuclear-norm regularization a
     Report the mean-squared reconstruction error.
     
     Repeat the same training procedure three times, and report the mean and standard deviations from the trained model outcomes.
+    Specifically, run the same fitting procedure three times, and report the mean and the standard deviation of the training error (on the observed entries), and the reconstruction error (between the fitted model and the ground-truth matrix).
 
     [Hint: use the fact that the gradient of the nuclear norm of a matrix $X$ is equal to $U V^{\top}$, where $X = U D V^{\top}$ is the singular value decomposition of a matrix $X$. Specifically, the dimensions of the three matrices are: $U \in \real^{d_1 \times r}$, $D \in \real^{r \times r}$, and $V \in \real^{d_2 \times r}$.]
 \end{itemize}
