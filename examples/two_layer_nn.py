@@ -9,16 +9,14 @@ from sklearn.preprocessing import StandardScaler
 import math
 
 
-class ThreeLayerNN(nn.Module):
-    """Three-layer neural network classifier"""
+class TwoLayerNN(nn.Module):
+    """Two-layer neural network classifier"""
 
     def __init__(self, input_dim, hidden_dim, output_dim):
-        super(ThreeLayerNN, self).__init__()
+        super(TwoLayerNN, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(hidden_dim, output_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
 
@@ -26,8 +24,6 @@ class ThreeLayerNN(nn.Module):
         x = self.fc1(x)
         x = self.relu1(x)
         x = self.fc2(x)
-        x = self.relu2(x)
-        x = self.fc3(x)
         return x
 
 
@@ -86,29 +82,25 @@ def measure_weights(model):
 
     B1 = math.sqrt(np.linalg.norm(model.fc1.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc1.bias.data.cpu().numpy()) ** 2)
     B2 = math.sqrt(np.linalg.norm(model.fc2.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc2.bias.data.cpu().numpy()) ** 2)
-    B3 = math.sqrt(np.linalg.norm(model.fc3.weight.data.cpu().numpy()) ** 2 + np.linalg.norm(model.fc3.bias.data.cpu().numpy()) ** 2)
 
     # calculate number of parameters
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    return B1, B2, B3, num_params
+    return B1, B2, num_params
 
 
 def measure_path_norm(model):
-    """Calculate the path norm of the three-layer nn"""
+    """Calculate the path norm of the two-layer nn"""
     path_norm = 0.0
-    for i in range(model.hidden_dim):  # first hidden layer neurons
-        for j in range(model.hidden_dim):  # second hidden layer neurons
-            for k in range(model.output_dim):  # output layer neurons
-                w1 = model.fc1.weight.data[i, :]
-                b1 = model.fc1.bias.data[i]
-                w2 = model.fc2.weight.data[j, i]
-                b2 = model.fc2.bias.data[j]
-                w3 = model.fc3.weight.data[k, j]
-                b3 = model.fc3.bias.data[k]
+    for i in range(model.hidden_dim):  # hidden layer neurons
+        for k in range(model.output_dim):  # output layer neurons
+            w1 = model.fc1.weight.data[i, :]
+            b1 = model.fc1.bias.data[i]
+            w2 = model.fc2.weight.data[k, i]
+            b2 = model.fc2.bias.data[k]
 
-                path_contribution = (torch.norm(w1, p=2) + torch.abs(b1)) * (torch.abs(w2) + torch.abs(b2)) * (torch.abs(w3) + torch.abs(b3))
-                path_norm += path_contribution.item()
+            path_contribution = (torch.norm(w1, p=2) + torch.abs(b1)) * (torch.abs(w2) + torch.abs(b2))
+            path_norm += path_contribution.item()
 
     return path_norm
 
@@ -186,7 +178,7 @@ def main():
     results = []
 
     print("\n" + "="*80)
-    print("ABLATION STUDY: Varying Hidden Dimension (3-Layer Network)")
+    print("ABLATION STUDY: Varying Hidden Dimension (2-Layer Network)")
     print("="*80)
 
     for hidden_dim in hidden_dims:
@@ -195,7 +187,7 @@ def main():
         print(f"{'='*80}")
 
         # Initialize model
-        model = ThreeLayerNN(input_dim, hidden_dim, output_dim)
+        model = TwoLayerNN(input_dim, hidden_dim, output_dim)
 
         # Train model
         train_losses, test_accuracies = train_model(model, X_train, y_train, X_test, y_test, epochs=100, lr=0.01)
@@ -249,28 +241,28 @@ def main():
     ax1.plot(hidden_dims_list, train_losses_list, 'o-', linewidth=2, markersize=8)
     ax1.set_xlabel('Hidden Dimension')
     ax1.set_ylabel('Train Loss')
-    ax1.set_title('Train Loss vs Hidden Dimension (3-Layer NN)')
+    ax1.set_title('Train Loss vs Hidden Dimension (2-Layer NN)')
     ax1.grid(True)
 
     # Plot train accuracy vs hidden_dim
     ax2.plot(hidden_dims_list, train_accs_list, 'o-', linewidth=2, markersize=8, color='green')
     ax2.set_xlabel('Hidden Dimension')
     ax2.set_ylabel('Train Accuracy')
-    ax2.set_title('Train Accuracy vs Hidden Dimension (3-Layer NN)')
+    ax2.set_title('Train Accuracy vs Hidden Dimension (2-Layer NN)')
     ax2.grid(True)
 
     # Plot test loss vs hidden_dim
     ax3.plot(hidden_dims_list, test_losses_list, 'o-', linewidth=2, markersize=8, color='red')
     ax3.set_xlabel('Hidden Dimension')
     ax3.set_ylabel('Test Loss')
-    ax3.set_title('Test Loss vs Hidden Dimension (3-Layer NN)')
+    ax3.set_title('Test Loss vs Hidden Dimension (2-Layer NN)')
     ax3.grid(True)
 
     # Plot test accuracy vs hidden_dim
     ax4.plot(hidden_dims_list, test_accs_list, 'o-', linewidth=2, markersize=8, color='orange')
     ax4.set_xlabel('Hidden Dimension')
     ax4.set_ylabel('Test Accuracy')
-    ax4.set_title('Test Accuracy vs Hidden Dimension (3-Layer NN)')
+    ax4.set_title('Test Accuracy vs Hidden Dimension (2-Layer NN)')
     ax4.grid(True)
 
     plt.tight_layout()
