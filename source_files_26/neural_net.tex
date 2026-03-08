@@ -550,7 +550,8 @@ Here is the question: when can the label noise be hidden in $\hat\theta$ without
     As $p$ goes to infinity, the effective rank of the data becomes very large.
     With the minimum-norm interpolator, on the other hand, the model uses the first dimension to capture the true signal, and the remaining $p - 1$ dimensions to absorb the noise level.
     Because the noise is spread over many dimensions, the amount of noise assigned to any single direction is negligible.
-    As a result, the excess risk goes to zero even though the model perfectly interpolated noisy data.\footnote{See also the celebrated Marchenko--Pastur semi-circle law, and its applications in wireless communication \citep{tulino2004random}.}
+    As a result, the excess risk goes to zero even though the model perfectly interpolated noisy data.\footnote{See also the celebrated Marchenko--Pastur Law (and also Wigner's Semicircle Law), and its applications in wireless communication \citep{tulino2004random}. The result states that for a large $N$ by $N$ symmetric matrix where the entries are sampled independently and identically from a normal distribution with mean $0$ and variance $\sigma^2$, as $N \rightarrow \infty$, the density of the eigenvalues follows a semicircle:
+    \[ f(x) = \frac 1 {2\pi R^2} \sqrt{4 R^2 - x^2}, \] supported between $[-2\sigma \sqrt{N}, 2 \sigma \sqrt{N}]$.}
 \end{example}
 
 The following result, by \citet{bartlett2020benign}, captures this example in more generality.
@@ -617,12 +618,12 @@ It only embraces half of the Bayesian story.
 While we have a prior $\cP(h)$, only a single $h \in \cH$ is returned rather than a full posterior $\cQ(h)$.
 
 Next, we show the PAC-Bayesian theorem \citep{mcallester1998some}, which fixes the above problem.
-Let the loss function be bounded between zero and one.
+Let the loss function be bounded between $0$ and $C$, for some fixed constant $C > 0$.
 Let $\cP$ be any prior distribution over $\cH$.
 Let $\cQ$ be any posterior distribution over $\cH$, which is a function of the training data.
 Then with probability at least $1 - \delta$,
 \begin{align}
-    \exarg{h \sim \cQ}{L(h)} \le \exarg{h \in \cQ}{\hat L(h)} + \sqrt{\frac {KL(\cQ || \cP) + \log(2n \delta^{-1})} {2(n-1)}}, \label{eq_pac_bayes}
+    \exarg{h \sim \cQ}{L(h)} \le \exarg{h \in \cQ}{\hat L(h)} + C\sqrt{\frac {D_{KL}(\cQ || \cP) + \log(2n \delta^{-1})} {2(n-1)}}, \label{eq_pac_bayes}
 \end{align}
 which holds for all posterior $\cQ$.
 
@@ -630,13 +631,31 @@ which holds for all posterior $\cQ$.
     In the case of SFT, one can set both $\cP$ and $\cQ$ as Gaussian distribution with variance $\sigma^2$, centered at the pretrained and fine-tuned models, respectively.
 \end{example}
 
+\begin{definition}[KL divergence]
+    For two distributions $\cP$ and $\cQ$, the KL divergence between $\cP$ and $\cQ$ is given by:
+    \begin{align}\label{eq_kl}
+        D_{KL}(\cP || \cQ) \define \int_{-\infty}^{\infty} p(x) \log\left( \frac{p (x) } {q(x)} \right) dx.
+    \end{align}
+\end{definition}
+
+\begin{example}[KL divergence between two Gaussian distributions]
+    Consider two (scaled) isotropic Gaussian distributions with different centers $\mu_1 \in \real^d, \mu_2 \in \real^d$: $\cP = \cN(\mu_1, \Sigma)$ and $\cQ = \cN(\mu_2, \Sigma)$, where $\Sigma = \sigma^2 \id$.
+
+    The KL divergence, according to equation \eqref{eq_kl}, is given by:
+    \begin{align}
+        & \int_{\real^d} \frac{ \exp\left( - \frac 1 2  {(\mathbf{x} - \mu_1)^{\top} \Sigma (\mathbf{x} - \mu_1) }  \right) } { \sqrt{ (2\pi)^d \det(\Sigma)}}  \left( -\frac{\sigma^2} 2 \left( 2\inner{\mu_2 - \mu_1}{\mathbf{x}} + \bignorm{\mu_1}^2 - \bignorm{\mu_2}^2 \right) \right) d\mathbf{x} \notag \\
+        =& -\frac{\sigma^2}2\left(\bignorm{\mu_1}^2 - \bignorm{\mu_2}^2 + 2 \ex{ \inner{\mu_2 - \mu_1} {\mathbf{x}} }\right) \notag \\
+        =& -\frac{\sigma^2} 2 \left( \bignorm{\mu_1}^2 - \bignorm{\mu_2}^2 + 2\inner{\mu_2 - \mu_1} {\mu_1} \right) = \frac{\sigma^2} 2\bignorm{\mu_1 - \mu_2}^2.  \label{eq_kl_gaussian}
+    \end{align}
+    In summary, the KL divergence gives a distance measure between two distributions, and one can verify that it satisfies the triangle inequality required by a distance metric.
+\end{example}
+
 \begin{proof}
 The first step is to derive the so-called Donsker-Varadhan change-of-measure result.
-For a prior $\cP$, the change of measure inequality states that for any measure $\cQ$,
+For a prior $\cP$, the change of measure inequality states that for any measure $\cQ$, any function $\phi: \cH \rightarrow \real$,
 \begin{align}
-    \exarg{f\sim\cQ}{\phi(f)} \le \log \exarg{f \in \cP}{\exp(\phi(f))} + D_{KL}(\cQ || \cP), \label{eq_dv}
+    \exarg{f\sim\cQ}{\phi(f)} \le \log \exarg{f \in \cP}{\exp(\phi(f))} + D_{KL}(\cQ || \cP). \label{eq_dv}
 \end{align}
-for any function $\phi: \cH \rightarrow \real$.
 To show equation \eqref{eq_dv}, let us define a distribution $\cP_G$ via its density with respect to $\cP$ as:
 \[ \frac {d\cP_{G}} {d\cP} (f) = \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))} } \]
 This is called the Gibbs measure.
@@ -654,10 +673,10 @@ Thus,
     &= \exarg{f\sim\cQ}{\phi(f)} - D_{KL}(\cQ || \cP) + D_{KL}(\cQ || \cP_G) \\
     &\ge \exarg{f\sim\cQ}{\phi(f)} - D_{KL}(\cQ || \cP),
 \end{align*}
-since the KL divergence is always non-negative.
+since the KL divergence between two distributions is always non-negative.
 Notice that the inequality holds if and only if $\cQ = \cP_G$.
 
-Next, in order to prove McAllester's bound, we consider the function $2(n-1) (\Delta(f))^2$ as $\phi$, where $\Delta(f) = L(f) - \hat L_n(f)$.
+Next, in order to prove equation \eqref{eq_pac_bayes}, we consider the function $2(n-1) (\Delta(f))^2$ as $\phi$, where $\Delta(f) = L(f) - \hat L_n(f)$.
 For a fixed $f$, we can bound $\Delta(f)$ using Hoeffding's inequality as:
 \begin{align}
     \Pr[\abs{\Delta(f)} \ge \epsilon] \le 2\exp(-2n \epsilon^2), \label{eq_mgf_delta}
@@ -704,33 +723,63 @@ Another version of the PAC-Bayesian theorem is shown by \cite{catoni2007pac} (se
 Suppose the loss function $\ell(f_W(x),y)$ lies in a bounded range $[0, C]$ given any $x\in\cX$ with label $y$.
 For any $\beta\in (0,1)$ and $\delta\in (0,1)$, with probability at least $1-\delta$, the following holds:
 \begin{equation}
-    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(KL(\cQ||\cP)+\log\frac{2 \sqrt n}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
+    L_{\cQ}(W)\leq \frac{1}{\beta}\hat{L}_{\cQ}(W) + \frac{C \big(D_{KL}(\cQ||\cP)+\log\frac{2 \sqrt n}{\delta}\big)}{2\beta(1-\beta)n}, \label{eq_pac}
 \end{equation}
 %which holds with probability $1 - \delta$ for any $\delta\in(0, 1)$ and $\beta \in (0, 1)$:
 %\begin{align}
 %    L_{\cQ}(W) \le \frac 1 {\beta} \hat L_{\cQ}(W) + \frac{C(KL(\cQ || \cP) + \log(\delta^{-1}))}{2\beta(1 - \beta) n}, \label{eq_pacbayes}
 %\end{align}
 where $\cP$ refers to the \textit{prior} distribution, $C$ refers to the upper bound on the loss value $\ell$.
-For analyzing fine-tuning, we view $\cP$ as centered at the pretrained model, with covariance matrix $\sigma^2 \id_p$.
+For analyzing fine-tuning, we view $\cP$ as centered at the pretrained model, with covariance matrix $\sigma^2 \id$.
 
+\begin{remark}[Equation \eqref{eq_pac} generalizes equation \eqref{eq_pac_bayes}]
+    Let us now illustrate that equation \eqref{eq_pac} in fact generalizes the earlier equation \eqref{eq_pac_bayes}.
+    To see this, we can treat the expression in equation \eqref{eq_pac} as a function in the form of $f(\beta) = \frac a {\beta} + \frac b {\beta (1 - \beta)}$. One can verify that the minimum of this is achieved when $\beta^{\star} = \frac{ \sqrt{a + b} } {\sqrt{a + b} + \sqrt{b}}$, leading to $f(\beta^{\star}) = a + 2b + 2 \sqrt{(a + b) b}$, or
+    \[ \hat L_{\cQ} (W) + O(n^{-1}) + 2 \sqrt{ \frac {C (C + O(n^{-1}) ) (D_{KL}(\cP || \cQ) + \log(2n \delta^{-1})) } {n} }, \]
+    which leads to equation \eqref{eq_pac_bayes} for some large enough range of $n$.
+\end{remark}
+
+\begin{proof}[Proof of equation \eqref{eq_pac}]
 The proof sketch of equation \eqref{eq_pac} is similar to equation \eqref{eq_pac_bayes}, which leverages the Donsker-Varadyan change-of-measure.
 The difference is in how we approach step \eqref{eq_mgf_delta}.
-Here, instead, one can show a statement on the ``titled'' loss gap as
-\begin{align}
-    \exarg{S}{\exp(a ( L(f) - \beta \hat L(f)) )} \le \exp\left( \frac {a^2 \beta^2 C^2} {8n} \right) \label{eq_titled_exp}
-\end{align}
-The first step towards the above is to write $L(f) - \beta \hat L(f)$ as
-\begin{align*}
-    L(f) - \beta \hat L(f) = (1 - \beta) L(f) + \beta(L(f) - \hat L(f))
-\end{align*}
-Thus, 
-\begin{align*}
-    \exarg{S}{\exp(a (L(f) - \beta \hat L(f)))} &= \exp(a (1 - \beta) L(f)) \cdot \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))} \\
-    &\le \exp(a (1 - \beta) L(f)) \cdot \exp\left(\frac{a^2 \beta^2 C^2}{8n}\right) \\
-    &\le \exp\left( a(1 - \beta) C + \frac{a^2 \beta^2 C^2}{8n} \right) % \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))}
-\end{align*}
-By setting $a = O((1 - \beta) n / C)$, we can derive equation \eqref{eq_titled_exp}.
-The rest of the proof is based on applying the Donsker-Varadyan change-of-measure, and then turn the expectation into a high-probability bound.
+First, we still have equation \eqref{eq_dv}, which holds for any $\cQ$ and function $\phi$.
+
+Next, we show an exponential moment bound for one fixed hypothesis $W$ as 
+\[ \ex{ \exp(n D_{KL}(\hat L_\cQ || L_{\cQ})) } \le 2 \sqrt n. \]
+%we can show a statement on the ``titled'' loss gap as
+%\begin{align}
+%    \exarg{S}{\exp(a ( L(f) - \beta \hat L(f)) )} \le \exp\left(a (1 - \beta) C + \frac {a^2 \beta^2 C^2} {8n} \right).\label{eq_titled_exp}
+%\end{align}
+%The first step towards the above is to write $L(f) - \beta \hat L(f)$ as
+%\begin{align*}
+%    L(f) - \beta \hat L(f) = (1 - \beta) L(f) + \beta(L(f) - \hat L(f))
+%\end{align*}
+%Thus, 
+%\begin{align}
+%    \exarg{S}{\exp(a (L(f) - \beta \hat L(f)))} &= \exp(a (1 - \beta) L(f)) \cdot \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))} \notag \\
+%    &\le \exp(a (1 - \beta) L(f)) \cdot \exp\left(\frac{a^2 \beta^2 C^2}{8n}\right) \label{eq_moment}\\
+%    &\le \exp\left( a(1 - \beta) C + \frac{a^2 \beta^2 C^2}{8n} \right) \notag% \exarg{S}{\exp(a \beta (L(f) - \hat L(f)))}
+%\end{align}
+%In particular, equation \eqref{eq_moment} can be derived by using the sub-Gaussian property of bounded random variables (see also Example \ref{ex_bounded_subg}). %$\int_0^{\infty} \exp(a \beta x) \exp(-2nx^2) dx$.
+%By setting $a = O((1 - \beta) n / C)$, we can derive equation \eqref{eq_titled_exp}.
+
+Next, let $\phi(f) = n (D_{KL}( \cQ || \cP ))$.
+We apply the Donsker-Varadyan change-of-measure \eqref{eq_dv} to $\phi$. %leading to 
+%\[ \exarg{f \sim \cQ}{ a(L(f) - \beta \hat L(f)) } \le D_{KL}(\cQ || \cP) + \log\left( \exarg{f \sim\cP} {\exp(a (L(f) - \beta \hat L(f) ))} \right)  \]
+Then, we turn the above into a high-probability bound. % by taking expectation inside the log over the training set $S$.
+Using Markov's inequality, with probability $1-\delta$ over the sample $S$, we get a result such that
+\[ \exarg{\cQ}{D_{KL} (\hat L(W) || L (W)) } \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n \]
+Using convexity of the KL operator, we get
+\[ D_{KL} (\hat L_\cQ(W) || L_\cQ(W)) \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n  \]
+Lastly, we use the following fact
+\[ D_{{KL}}(q \,\|\, p) \le \varepsilon \;\Longrightarrow\; p \le \frac{q}{\beta} + \frac{\varepsilon}{2\beta(1-\beta)},~ \forall\,\beta \in (0,1), \]
+which completes the proof of equation \eqref{eq_pac}.
+%the internal expectation is bounded by $\frac{1}{\delta} \exp\left( a(1 - \beta) C + \frac{a^2 \beta^2 C^2}{8n} \right)$. Applying \eqref{eq_titled_exp}:
+%\begin{equation}
+%L_{\cQ}(f) \le \beta \hat L_{\cQ}(f) + (1-\beta)C + \frac{D_{KL}(\cQ \parallel \cP) + \log(1/\delta)}{a} + \frac{a \beta^2 C^2}{8n}
+%\end{equation}
+%Optimizing over $a$ and $\beta$ yields the final form in \eqref{eq_pac}.
+\end{proof}
 
 \subsection{Noise-sensitivity generalization bounds (Lecture 15)}
 

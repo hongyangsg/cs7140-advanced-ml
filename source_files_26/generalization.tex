@@ -326,7 +326,7 @@ This motivates the following definition.
     It follows that for sub-Gaussian $X$, we again have that $\Pr[X \ge \epsilon] \le \exp(-\epsilon^2 /(2\sigma^2))$.
 \end{definition}
 
-\begin{example}[Revisiting ERM in the lens of sub-Gaussian random variables]
+\begin{example}[Revisiting ERM in the lens of sub-Gaussian random variables]\label{ex_bounded_subg}
     Imagine you are training a classifier. You want to know if the training error is a good proxy for the test error.
     For most ML loss functions, their loss values are bounded (e.g., between $0$ and $1$ or another small constant $C > 0$).
     Next, we shall verify that any bounded random variable is sub-Gaussian.
