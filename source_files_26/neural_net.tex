@@ -595,7 +595,7 @@ The population loss is %given by the expected loss of an unseen sample $(x, y)$ 
 It is sufficient to think that the empirical loss is less than the population loss, and the goal is to bound the gap between $\hat L(W)$ and $L(W)$ from above \citep{shalev2014understanding}.
 With this setting in mind, we now describe several PAC-Bayesian bounds, which incorporate the prior into the analysis without assuming that the prior is ``correct.''
 
-\paragraph{Occam bound:} Here we assume a countable hypothesis class, and the algorithm outputs a single hypothesis.
+In Occam's bound, we assume a countable hypothesis class, and the algorithm outputs a single hypothesis.
 More specifically, let $\cH$ be a countable hypothesis class.
 Let the loss function be bounded $\ell(z, h) \le [0, 1]$.
 Let $\cP$ be any prior distribution over $\cH$.
@@ -629,6 +629,16 @@ which holds for all posterior $\cQ$.
 
 \begin{example}[Supervised fine-tuning of language models]
     In the case of SFT, one can set both $\cP$ and $\cQ$ as Gaussian distribution with variance $\sigma^2$, centered at the pretrained and fine-tuned models, respectively.
+    The perturbations provide an evaluation of the stability of the loss surface, under perturbations of noise injection.
+
+    A more extreme version of model attack is jailbreaking \citep{chao2025jailbreaking}.
+    The problem of jailbreaking can be formulated as follows.
+    Let $P = x_{1:n}$ be a sequence of $n$ tokens, where $x_{1:n} = (x_1, \dots, x_n)$.
+    Let the response $R = x_{n+1 : n+L}$ be a sequence of $L$ tokens.
+    Assume there is a generative model that outputs the response:
+    \[ q^{\star}_T(x_{n+1: n+L} \mid x_{1:n}) = \prod_{i=1}^L q_T(x_{n+i} \mid x_{1: n+i-1}), \]
+    where $q_T: V^{\star} \rightarrow \Delta(V)$ for some vocabulary $V$.
+    The problem of jailbreaking involves finding a prompt sequence $P$ such that $\textup{JUDGE}(P, R) = 1$, for $R \sim q_T(P)$, where $\textup{JUDGE}: V^{\star} \times V^{\star} \rightarrow \set{0, 1}$ is a binary-valued function that determines whether a prompt-response pair $(P, R)$ is jailbroken.
 \end{example}
 
 \begin{definition}[KL divergence]
@@ -768,9 +778,9 @@ We apply the Donsker-Varadyan change-of-measure \eqref{eq_dv} to $\phi$. %leadin
 %\[ \exarg{f \sim \cQ}{ a(L(f) - \beta \hat L(f)) } \le D_{KL}(\cQ || \cP) + \log\left( \exarg{f \sim\cP} {\exp(a (L(f) - \beta \hat L(f) ))} \right)  \]
 Then, we turn the above into a high-probability bound. % by taking expectation inside the log over the training set $S$.
 Using Markov's inequality, with probability $1-\delta$ over the sample $S$, we get a result such that
-\[ \exarg{\cQ}{D_{KL} (\hat L(W) || L (W)) } \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n \]
+\[ \exarg{\cQ}{D_{KL} (\hat L(W) || L (W)) } \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n. \]
 Using convexity of the KL operator, we get
-\[ D_{KL} (\hat L_\cQ(W) || L_\cQ(W)) \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n  \]
+\[ D_{KL} (\hat L_\cQ(W) || L_\cQ(W)) \le \frac { D_{KL}(\cQ || \cP) + \log( 2 \sqrt n / \delta) } n.  \]
 Lastly, we use the following fact
 \[ D_{{KL}}(q \,\|\, p) \le \varepsilon \;\Longrightarrow\; p \le \frac{q}{\beta} + \frac{\varepsilon}{2\beta(1-\beta)},~ \forall\,\beta \in (0,1), \]
 which completes the proof of equation \eqref{eq_pac}.
