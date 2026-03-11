@@ -600,13 +600,13 @@ More specifically, let $\cH$ be a countable hypothesis class.
 Let the loss function be bounded $\ell(z, h) \le [0, 1]$.
 Let $\cP$ be any prior distribution over $\cH$.
 Then with probability at least $1 - \delta$, we have that
-\[ \forall h \in \cH, L(h) \le \hat L(h) + \sqrt{\frac {\log\big(\frac 1 {\cP(h)}\big) + \log(\delta^{-1})} {2n}} \]
+\[ \forall h \in \cH, L(h) \le \hat L(h) + \sqrt{\frac {\log\big(\frac 1 {\cP(h)}\big) + \log(\delta^{-1})} {2n}}. \]
 
 \begin{proof}
 By Hoeffding's inequality, we have that for any fixed $h\in \cH$:
-\[ \Pr[L(h) \ge \hat L(h) + \epsilon] \le \exp(-2n \epsilon^2) \]
+\[ \Pr[L(h) \ge \hat L(h) + \epsilon] \le \exp(-2n \epsilon^2). \]
 If we set the RHS to $\delta \cP(h)$, then we get that with probability at least $\delta \cP(h)$,
-\[ L(h) \ge \hat L(h) + \sqrt{ \frac {\log\Big( \frac 1 {\delta \cP(h)}\Big)} {2n}} \]
+\[ L(h) \ge \hat L(h) + \sqrt{ \frac {\log\Big( \frac 1 {\delta \cP(h)}\Big)} {2n}}. \]
 Applying the union bound across all of $h \in \cH$, we have that with probability at most $\delta$,
 there exists an $h \in \cH$ such that the above is true.
 By taking the contra-positive, we have derived Occam's bound.
@@ -667,7 +667,7 @@ For a prior $\cP$, the change of measure inequality states that for any measure 
     \exarg{f\sim\cQ}{\phi(f)} \le \log \exarg{f \in \cP}{\exp(\phi(f))} + D_{KL}(\cQ || \cP). \label{eq_dv}
 \end{align}
 To show equation \eqref{eq_dv}, let us define a distribution $\cP_G$ via its density with respect to $\cP$ as:
-\[ \frac {d\cP_{G}} {d\cP} (f) = \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))} } \]
+\[ \frac {d\cP_{G}} {d\cP} (f) = \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))} }. \]
 This is called the Gibbs measure.
 Notice that
 \begin{align*}
@@ -675,7 +675,7 @@ Notice that
     &= \int \left( \log\left(\frac {d \cQ} {d \cP}\right) - \log\left( \frac {d\cQ} {d \cP_G} \right) \right) d \cQ \\
     &= \int \log\left( \frac {d \cP_G} {d \cP} \right) d \cQ \\
     &= \exarg{f\sim\cQ}{\log\left( \frac {\exp(\phi(f))} {\exarg{h\sim\cP}{\exp(\phi(h))}} \right)} \\
-    &= \exarg{f\sim\cQ}{\phi(f)} - \log \exarg{h\sim\cP}{\exp(\phi(h))}
+    &= \exarg{f\sim\cQ}{\phi(f)} - \log \exarg{h\sim\cP}{\exp(\phi(h))}.
 \end{align*}
 Thus,
 \begin{align*}
@@ -696,7 +696,7 @@ The second step is to turn equation \eqref{eq_mgf_delta} into a high-probability
 We apply the Donsker-Varadhan change-of-measure, and get
 \begin{align*}
     \exarg{f\sim\cP}{\exp\left(2(n-1) (\Delta(f))^2\right)}
-    \ge \exp\left( 2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} - D_{KL}(\cQ || \cP)\right)
+    \ge \exp\left( 2(n-1) \exarg{f\sim\cQ}{(\Delta(f))^2} - D_{KL}(\cQ || \cP)\right).
 \end{align*}
 Let us take the expectation over the training sample set $S$ (recall that $\cQ$ depends on the training samples) on both sides and notice that the prior $\cP$ does not depend on the training samples.
 We get
@@ -855,8 +855,6 @@ Given a sample $U\sim \cN(0, \sigma^2\id_p)$, let the perturbed loss be given by
 Then, let $\hat L_{\cQ}(W)$ be the averaged value of $\ell_{\cQ}(f_W(\cdot), \cdot)$, taken over $n$ empirical samples from the training dataset.
 Likewise, let $L_{\cQ}(W)$ be the population average of $\ell_{\cQ}(f_W(\cdot), \cdot)$, in expectation over an unseen data sample from the underlying data distribution.
 
-
-
 By Taylor's expansion of $\ell_{\cQ}$, we show that:
 \begin{align}
     L_{\cQ}(W) &= L(W) + \frac {\sigma^2} 2 \exarg{(x,y)\sim\cD}{\bigtr{\nabla^2 \ell(f_{W}(x), y)}} + O(\sigma^3) \label{eq_taylorh1}\\
@@ -875,7 +873,7 @@ The KL divergence between $\cP$ and $\cQ$ is equal to
 \end{align*}
 Specifically, if $\Sigma = \sigma^2\id_p$, then the above simplifies to
 \begin{align*}
-    KL(\cQ||\cP) = \frac{\bignorms{X - Y}^2}{2\sigma^2}.
+    KL(\cQ||\cP) = \frac{\bignorm{X - Y}^2}{2\sigma^2}.
 \end{align*}
 
 By choosing $\sigma^2$ and $\beta$ to minimize equation \eqref{eq_intermediate}, we will obtain equation \eqref{eq_main_1}.
