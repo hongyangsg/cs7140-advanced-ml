@@ -648,7 +648,7 @@ which holds for all posterior $\cQ$.
     \end{align}
 \end{definition}
 
-\begin{example}[KL divergence between two Gaussian distributions]
+\begin{example}[KL divergence between two Gaussian distributions]\label{ex_kl_gauss}
     Consider two (scaled) isotropic Gaussian distributions with different centers $\mu_1 \in \real^d, \mu_2 \in \real^d$: $\cP = \cN(\mu_1, \Sigma)$ and $\cQ = \cN(\mu_2, \Sigma)$, where $\Sigma = \sigma^2 \id$.
 
     The KL divergence, according to equation \eqref{eq_kl}, is given by:
@@ -727,6 +727,20 @@ That is, with probability at least $1 - \delta$,
 Using Jensen's inequality, the left is greater than \[2(n-1)\left(\exarg{f\sim\cQ}{\Delta(f)}\right)^2 \]
 Taking square root on both sides gives us the McAllester's bound.
 \end{proof}
+
+\begin{example}[Shifted Gaussians]
+    Let $\cP = \cN(0, 1)$, $\cQ = \cN(\mu, 1)$.
+    Consider the test function $f(x) = t x$ for some real value $t$.
+    The DV inequality \eqref{eq_dv} states that
+    \[ \exarg{\cQ}{tx} \le D_{KL}(\cQ || \cP) + \log \exarg{\cP}{e^{tx}} \]
+    To compute each term, we note that the left-hand side is $t \mu$.
+    For the right hand side, by Example \ref{ex_kl_gauss}, the KL divergence term is $\mu^2 / 2$.
+    The second term is $e^{t^2 / 2}$ based on the moment-generating function of a standard Gaussian.
+    Putting together, \eqref{eq_dv} is equivalent to $2 t \mu \le \mu^2 + t^2$, which recovers a simple quadratic bound.
+
+    As a remark, the equality holds when $\cQ = \cP_G$.
+    In the above example, when $t = \mu$, or when $\cQ = \cN(t, 1)$.
+\end{example}
 
 %\paragraph{PAC-Bayesian bound (Catoni):}
 Another version of the PAC-Bayesian theorem is shown by \cite{catoni2007pac} (see also Theorem 3.5, \cite{alquier2021user}).
@@ -845,7 +859,7 @@ We find that the Hessian measure is smaller for explicit regularization than imp
     Each dot represents the generalization error and the Hessian measures for a single fine-tuned model using a specific regularization method.}\label{fig:hessian_reg}
 \end{figure*}
 
-\paragraph{Proof Sketch:}
+\begin{proof}
 We provide a high-level illustration of the proof of equation \eqref{eq_trace_norm}.
 Let $\cQ$ denote the \textit{posterior} distribution. Specifically, we consider $\cQ$ as being centered at the learned hypothesis $W$ (which could be anywhere within the hypothesis space), given by a Gaussian distribution $\cN(W, \sigma^2 \id_p)$, where $\id_p$ denotes the $p$ by $p$ identity matrix.
 Given a sample $U\sim \cN(0, \sigma^2\id_p)$, let the perturbed loss be given by 
@@ -877,4 +891,5 @@ Specifically, if $\Sigma = \sigma^2\id_p$, then the above simplifies to
 \end{align*}
 
 By choosing $\sigma^2$ and $\beta$ to minimize equation \eqref{eq_intermediate}, we will obtain equation \eqref{eq_main_1}.
-This summarizes the high-level proof idea.
+This summarizes the high-level proof idea. For a complete proof. please refer to the work of \citet{zhang2024noise}.
+\end{proof}
