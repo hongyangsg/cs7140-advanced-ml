@@ -7,7 +7,7 @@ For instance, negative transfer refers to a situation where transfer learning fr
 However, exactly how and why negative transfer occurs has not been fully resolved --- 
 Next, we provide a rigorous study of this phenomenon in the setting of transfer learning linear regression.
 
-\subsection{Transfer learning linear regression}
+\subsection{Transfer learning linear regression (Lecture 15)}
 
 We first introduce the problem setup.
 Suppose there are $n_1$ samples drawn from a $p$-dimensional distribution $D_1$ with real-valued labels in a \emph{source} task.
@@ -64,7 +64,7 @@ The bias and variance formulas are defined as %
     L_{\vari}   &= \sigma^2  \tr\big[{\Sigma^{(2)}\hat \Sigma^{-1}  }\big].  \label{Lvar}
 \end{align}
 
-\paragraph{Proof:} The proof of the above is based on algebraic calculations.
+The proof of the above is based on algebraic calculations.
 By minimizing $\ell(B)$ in \eqref{HPS_loss}, we obtain the minimizer as
 \[ \hat\beta^{\MTL}_2 = \left( (X^{(1)})^{\top} X^{(1)} + (X^{(2)})^{\top} X^{(2)} \right)^{-1} 
 \left( (X^{(1)})^{\top} Y^{(1)} + (X^{(2)})^{\top} Y^{(2)} \right) \]
@@ -126,7 +126,7 @@ Figure \ref{fig_motivation} demonstrates an illustration of this tradeoff.
 
 \begin{figure*}
     \centering
-    \includegraphics[width=0.7\textwidth]{figures/motivation.eps}
+    \includegraphics[width=0.7\textwidth]{figures/motivation.pdf}
     \caption{We illustrate the performance of HPS vs. OLS (ordinary least squares) for different levels of model shifts, indicated by $\mu \approx \bignorm{\beta^{(1)} - \beta^{(2)}} / \sqrt{2}$. We consider two linear regression tasks and vary the sample size of the source task, denoted as $n_1$, and $\mu$, while holding the target task as fixed.
     %Here $\mu$ is given by $^2 \approx 2\mu^2$.
     The gray line refers to the performance of OLS.
@@ -176,6 +176,7 @@ It can be shown that this adjusted HPS estimator now matches the minimax lower b
 \paragraph{Proof sketch:} The proof of the minimax lower bound is via a covering argument.
 In particular, we design a cover of the parameter vectors, taking into account the effect of model shifts \citep{wainwright2019high}.
 
+\iffalse
 \subsubsection{Extension to multiple tasks}
 
 Suppose there are $t$ tasks whose feature covariates are all equal to $X \in \real^{n \times p}$. The label vector of the $i$-th task follows a linear model with an unknown $p$ dimensional vector $\beta^{(i)}$, for $i=1, 2,\dots, t$:
@@ -200,6 +201,7 @@ Let $(\hat A, \hat B)$ denote the global minimizer of $\ell(A, B)$.
 {In particular, we compute the global minimizer of $\ell(A, B)$ by first solving $\hat B$ as a function of $\hat A$---this turns out to be $(X^{\top}X)^{-1} X^{\top}Y$ multiplied by  $A^{\top} (A A^{\top})^+$, with $(AA^{\top})^{+}$ denoting the pseudoinverse of $AA^{\top}$. 
 Next, we could find the optimal $\hat A$ by taking the rank-$r$ SVD of $Y^{\top} X (X^{\top}X)^{-1} X^{\top}Y$ to get the leading $r$ left singular vectors as $U_r \in\real^{t\times r}$.
 Then, we can obtain $\hat B \hat A$ as $(X^{\top} X)^{-1} X^{\top} Y U_r U_r^{\top}$.}
+
 
 \paragraph{Deriving the HPS estimator:} For the optimization objective $\ell(A, B)$ in equation \eqref{eq_mtl_same_cov}, using the local optimality condition $\frac {\partial \ell} {\partial B} = 0$, we can obtain $\hat{B}$ as a function of $A$:
 \begin{align}
@@ -229,13 +231,13 @@ We illustrate the behavior of the HPS estimator in the multitask setting as foll
 \begin{figure}[!t]
 	\begin{subfigure}[b]{0.48\textwidth}
 		\centering
-		\includegraphics[width=0.98\textwidth]{figures/multitask_width.eps}
+		\includegraphics[width=0.98\textwidth]{figures/multitask_width.pdf}
 		\caption{Varying the rank of the shared matrix $B$}
 		\label{fig_sec4_width}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.48\textwidth}
 		\centering
-		\includegraphics[width=0.98\textwidth]{figures/multitask_transfer.eps}
+		\includegraphics[width=0.98\textwidth]{figures/multitask_transfer.pdf}
 		\caption{Varying model shift $\mu$}
 		\label{fig_sec4_transfer}
 	\end{subfigure}
@@ -247,7 +249,7 @@ We illustrate the behavior of the HPS estimator in the multitask setting as foll
     Similar to Figure \ref{fig_motivation}, the transfer effect of HPS can be either positive or negative depending on $\mu, n$.}
 	\label{fig_sec4}
 \end{figure}
-
+\fi
 
 \iffalse
 \section{Generalization and optimization in reinforcement learning}
