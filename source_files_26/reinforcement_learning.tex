@@ -1,28 +1,23 @@
-\section{Generalization and optimization in reinforcement learning}
+\section{Optimization and generalization in reinforcement learning}
 
+The lecture note in this section draws mostly from \citet{agarwal2019reinforcement}.
 In reinforcement learning, the interactions between the agent and the environment are often described by an infinite horizon, discounted Markov decision process (MDP), specified by:
-\begin{itemize}
-    \item A state space $\cS$, which may be finite or infinite.
-    For mathematical convenience, we will assume that $\cS$ is finite or countably infinite.
+A state space $\cS$, which may be finite or countably infinite;
+    %For mathematical convenience, we will assume that $\cS$ is finite or  infinite.
+An action space $\cA$, which may also be discrete or countably infinite;
+A transition model $P: \cS \times \cA \rightarrow \Delta(\cS)$, where $\Delta(\cS)$ is the space of probability distributions over $\cS$ (i.e., the probability simplex);
+$\Pr(s' | s, a)$ is the probability of transitioning into state $s'$ upon taking action $a$ in state $s$.
+We use $P_{s, a}$ to denote the vector $\Pr(\cdot | s, a)$.
+     
+A reward function $r: \cS \times \cA \rightarrow [0, 1]$, where $r(s, a)$ is the immediate reward associated with taking action $a$ in state $s$.
+More generally, $r(s, a)$ could be a random variable where the distribution depends on $s, a$.
+A discount factor $\gamma \in [0, 1)$, which defines a horizon for the problem.
 
-    \item An action space $\cA$, which may also be discrete or infinite.
+An initial state distribution $\mu \in \Delta(\cS)$, which specifies how the initial state $s_0$ is generated.
 
-    \item A transition function $P: \cS \times \cA \rightarrow \Delta(\cS)$, where $\Delta(\cS)$ is the space of probability distributions over $\cS$ (i.e., the probability simplex).
-    $P(s' | s, a)$ is the probability of transitioning into state $s'$ upon taking action $a$ in state $s$.
-    We use $P_{s, a}$ to denote the vector $P(\cdot | s, a)$.
-
-    \item A reward function $r: \cS \times \cA \rightarrow [0, 1]$, where $r(s, a)$ is the immediate reward associated with taking action $a$ in state $s$.
-    More generally, $r(s, a)$ could be a random variable where the distribution depends on $s, a$.
-    %While we largely focus on the case where $r(s, a)$ is determinstic, 
-
-    \item A discount factor $\gamma \in [0, 1)$, which defines a horizon for the problem.
-
-    \item An initial state distribution $\mu \in \Delta(\cS)$, which specifies how the initial state $s_0$ is generated.
-\end{itemize}
-
-\paragraph{The objective, policies, and values.}
-In a given MDP $M = (\cS, \cA, P, r, \gamma, \mu)$, the agent interacts with the environment according to the following protocol.
-The agent starts at some state $s_0 \sim \mu$; at each time step $t = 0, 1, 2, \dots,$ the agent takes an action $a_t \in \cA$, obtains the immediate reward $r_t = r(s_t, a_t)$, and observes the next state $s_{t+1 }$ sampled according to $s_{t + 1} \sim P(\cdot | s_t, a_t)$.
+%\paragraph{The objective, policies, and values.}
+Given an MDP $M = (\cS, \cA, P, r, \gamma, \mu)$, the agent interacts with the environment according to the following protocol.
+The agent starts at some state $s_0 \sim \mu$; at each time step $t = 0, 1, 2, \dots,$ the agent takes an action $a_t \in \cA$, obtains the immediate reward $r_t = r(s_t, a_t)$, and observes the next state $s_{t+1 }$ sampled according to $s_{t + 1} \sim \Pr(\cdot | s_t, a_t)$.
 The interaction record at time $t$,
 \[ r_t = (s_0, a_0, r_0, s_1, \dots, s_t, a_t, r_t) \]
 is called a trajectory, which includes the observed state at time $t$.
@@ -30,7 +25,7 @@ is called a trajectory, which includes the observed state at time $t$.
 In the most general setting, a policy specifies a decision-making strategy in which the agent chooses actions adaptively based on the history of observations.
 Precisely, a policy is a mapping from a trajectory to an action, i.e., $\pi: \cH \rightarrow \Delta(\cA)$ where $\cH$ is the set of all possible trajectories (of all lengths) and $\Delta(\cA)$ is the space of probability distributions over $\cA$.
 
-\paragraph{Values.} We now define values for general policies.
+We now define the value function for a given policy.
 For a fixed policy and a starting state $s_0 = s$, we define the value function $V^{\pi}_M: \cS \rightarrow \real$ as the discounted sum of future rewards
 \[ V_M^{\pi}(s) = \ex{\sum_{t=0}^{\infty} \gamma^t r(s_t, a_t) | \pi, s_0 = s} \]
 where expectation is with respect to the randomness of the trajectory, that is, randomness in state transitions and stochasticity of $\pi$.
@@ -38,36 +33,59 @@ where expectation is with respect to the randomness of the trajectory, that is, 
 Similarly, the action-value (or $Q$-value) function $Q_M^{\pi}: \cS \times \cA \rightarrow \real$ is defined as
 \[ Q_M^{\pi}(s, a) = \ex{\sum_{t = 0}^{\infty} \gamma^t r(s_t, a_t) | \pi, s_0 = s, a_0 = a} \]
 
-\paragraph{Goal.} Given a state $s$, the goal of the agent is to find a policy $\pi$ that maximizes t he value, i.e., the optimization problem the agent seeks to solve is:
+Given a state $s$, the goal of the agent is to find a policy $\pi$ that maximizes the value, i.e., the optimization problem the agent seeks to solve is:
 \[ \max_{\pi} V_M^{\pi}(s), \]
 where the max is over all possibly non-stationary and randomized policies.
 
-\paragraph{Example (Navigation).}
-Imagine the navigation of a robot or a delivery agent.
-The state of the agent is their current location.
-The four actions might be moving one step along each of east, west, north, or south. The transitions in the simplest setting are deterministic.
-Taking the north action moves the agent one step north of their location, assuming the step size is standardized.
-The agent might have a goal state $g$ they are trying to reach, and the reward is zero until the agent reaches the goal, and one upon reaching the goal state.
-Since the discount factor $\gamma < 1$, there is incentive to reach the goal state earlier in the trajectory.
-As a result, the optimal behavior in this setting corresponds to finding the shortest path from the initial state to the goal state, and the value function of a state, given a policy is $\gamma^d$, where $d$ is the number of steps required by the policy to reach the goal state.
+\begin{example}[Robotics and control]
+%Imagine the navigation of a robot or a delivery agent.
+In a robotic manipulation or navigation task, the MDP is defined as follows.
+States $s \in \cS$ represents continuous or discretized vectors representing joint angles, velocities, or the robot's coordinates in 3D space.
+%The four actions might be moving one step along each of east, west, north, or south. The transitions in the simplest setting are deterministic.
+Actions $a \in \cA$ could be torques applied to motors or velocity commands sent to the controller.
+%Taking the north action moves the agent one step north of their location, assuming the step size is standardized.
+%The agent might have a goal state $g$ they are trying to reach, and the reward is zero until the agent reaches the goal, and one upon reaching the goal state.
+Transitions $\Pr(s' \mid s, a)$ represent the physics of the environment (e.g., gravity, friction) which determines the next state, often with observational noise or uncertainty.
+%Since the discount factor $\gamma < 1$, there is incentive to reach the goal state earlier in the trajectory.
+Rewards $r(s, a)$ is a cost function based on distance to the target goal or a penalty for colliding with an obstacle.
+%As a result, the optimal behavior in this setting corresponds to finding the shortest path from the initial state to the goal state, and the value function of a state, given a policy is $\gamma^d$, where $d$ is the number of steps required by the policy to reach the goal state.
+\end{example}
 
-\paragraph{Conversational agent.} This is another fairly general RL problem.
-The state of an agent can be the current transcript of the conversation, along with additional information about the context of the conversation, characteristics of other agents or human in the conversation.
-Actions depend on the domain, for instance, we can think of the statement to make in the conversation.
-Conversational agents may be designed for task completion, such as travel assistant, tech support, or virtual receptionist.
-For these cases, where may be a pre-defined set of slots which the agent needs to fill before they can find a good solution.
-For instance, in the case of a travel agent, these may correspond to the dates, source, destination, and mode of travel.
-The actions may correspond to the text queries to fill the slots.
+\begin{example}[Conversational agent and RL reasoning] 
+In this domain, the MDP components are.
+States $s \in \cS$: the transcript of the conversation and context history.
+Actions $a \in \cA$: The set of possible responses or slot-filling queries.
+Transition model $\Pr(s' \mid s, a)$: The probability that a user responded with $a$ transitioning to $s'$.
+Rewards $s(s, a)$: a binary outcome for task completion (e.g., successful booking).
+%The state of an agent can be , along with additional information about the  of the conversation, characteristics of other agents or human in the conversation.
+%Actions depend on the domain, for instance, we can think of the statement to make in the conversation.
+%Conversational agents may be designed for task completion, such as travel assistant, tech support, or virtual receptionist.
+%For these cases, where may be a pre-defined set of slots which the agent needs to fill before they can find a good solution.
+%For instance, in the case of a travel agent, these may correspond to the dates, source, destination, and mode of travel.
+%The actions may correspond to the text queries to fill the slots.
+%, reward is defined as a   on whether the task was completed or not, such as whether the travel was   or not.
+%Depending on the domain, we could further refine it based on quality or price of travel package.
+%For more general conversations, the reward is whether the conversation was satisfactory to the other agents/humans or not.
+\end{example}
 
-For task completion, reward is defined as a binary outcome on whether the task was completed or not, such as whether the travel was successfully booked or not.
-Depending on the domain, we could further refine it based on quality or price of travel package.
-For more general conversations, the reward is whether the conversation was satisfactory to the other agents/humans or not.
+\begin{example}[Strategic games]
+For games like Go or Chess,
+states $\cS$ is the set of all valid board configurations,
+actions $\cA$ is the set of legal moves fro ma given state,
+transition model $\Pr(s' \mid s, a)$ is often deterministic for single-agent games, or represents the opponent's response in multi-agent RL.
+The reward is $0$ for intermediate steps, and $+1$ or $-1$ at the terminal state.
+%The usual setting consists of states being the current game board, actions being the potential next moves and reward being the eventual win/loss outcome on a more detailed score when it's defined in the game.
+\end{example}
 
-\paragraph{Example (Strategic games).} This is another popular use case where RL has been used to achieve human level performance in Go, Chess, Poker, etc.
-The usual setting consists of states being the current game board, actions being the potential next moves and reward being the eventual win/loss outcome on a more detailed score when it's defined in the game.
-These are also called multi-agent RL.
+\begin{example}[RL Reasoning in LLMs]\label{ex_rl_reasoning}
+In the context of Large Language Models (LLMs) trained with RL, the MDP is structured with {states} $s \in \mathcal{S}$ with the prompt plus the sequence of tokens generated so far.
+In reasoning models, this includes the ``hidden'' thoughts or reasoning chain.
+The {actions} $a \in \mathcal{A}$ is the next token to be sampled from the vocabulary.
+The {transitions} $\Pr(s' | s, a)$ to the next state $s'$ is simply the previous sequence of tokens $s$ concatenated with the sampled token $a$.
+The {rewards} $r(s, a)$ could be {sparse,} given only at the end of the sequence based on correctness (e.g., a math answer) or human preference, or {dense,} given for each step of the reasoning chain to encourage logical consistency.
+\end{example}
 
-\paragraph{Stationary policies.}
+%\paragraph{Stationary policies.}
 Stationary policies satisfy the following consistency conditions.
 %\paragraph{Bellman consistency.}
 In particular, suppose that $\pi$ is a stationary policy.
@@ -80,14 +98,14 @@ Let us denote $P^{\pi}$ as the transition matrix on state-action pairs induced b
 \[ P^{\pi}_{(s, a), (s', a')} \define P(s' | s, a) \pi(a' | s') \]
 In particular, for deterministic policies we have
 \begin{align*}
-    P^{\pi}_{(s, a), (s', a')} \define
+    r^{\pi}_{(s, a), (s', a')} \define
     \begin{cases}
-        P(s' | s, a) & \text{ if } a' = \pi(s') \\
+        \Pr(s' | s, a) & \text{ if } a' = \pi(s') \\
         0 & \text{ if } a' \neq \pi(s')
     \end{cases}
 \end{align*}
 Let $V^{\pi}$ be a vector of length $\cS$ and $Q^{\pi}, r$ as vectors of length $\abs{\cS} \cdot \abs{\cA}$.
-Let $P$ be a matrix where $P_{(s, a), s'} = P(s' | s, a)$.
+Let $P$ be a matrix where $P_{(s, a), s'} = P^{\pi}(s' | s, a)$.
 With this notation, we can verify that
 \begin{align*}
     Q^{\pi} = r + \gamma P V^{\pi}, \text{ and } Q^{\pi} = r + \gamma P^{\pi} Q^{\pi},
@@ -100,48 +118,59 @@ In particular, the Bellman optimality equations \citep{bellman1956dynamic} give 
 \subsection{Finite-horizon Markov decision processes (Lecture 16)}
 
 In some cases, it's natural to work with finite-horizon (and time-dependent) MDPs.
-Here, a finite horizon, time-dependent MDP $M = (\cS, \cA, \set{P}_h, \set{r}_h, H, \mu)$ is specified as follows
-\begin{itemize} 
-    \item A state space $\cS$
-    \item An action space $\cA$
-    \item A time-dependent transition function $P_h: \cS \times \cA \rightarrow \Delta(S)$
-    \item A time-dependent reward function $r_h: \cS \times \cA \rightarrow [0, 1]$
-    \item An integer $H$ which defines the horizon of the problem
-    \item An initial state distribution $\mu \in \Delta(\cS)$ which specifies how the initial state $s_0$ is generated
-\end{itemize}
+Here, a finite horizon, time-dependent MDP $M = (\cS, \cA, \set{P}_h, \set{r}_h, H, \mu)$ is specified with, a state space $\cS$, an action space $\cA$, a time-dependent transition function $P_h: \cS \times \cA \rightarrow \Delta(S)$, a time-dependent reward function $r_h: \cS \times \cA \rightarrow [0, 1]$, an integer $H$ which defines the horizon of the problem, and an initial state distribution $\mu \in \Delta(\cS)$ which specifies how the initial state $s_0$ is generated
+
 Here, for a policy $\pi$, a state $s$, and $h \in \set{0, \dots, H-1}$, we define the value function $V_h^{\pi}: \cS \rightarrow \real$ as
-\[ V_h^{\pi}(s) = \ex{\sum_{t = h}^{H-1} r_h(s_t, a_t) | pi, s_h = s } \]
+\[ V_h^{\pi}(s) = \ex{\sum_{t = h}^{H-1} r_h(s_t, a_t) | \pi, s_h = s } \]
 Similarly, the state-action value function $Q_h^{\pi}$ is defined as
 \[ Q_h^{\pi}(s, a) = \ex{\sum_{t=h}^{H-1} r_h(s_t, a_t) | \pi, s_h = s, a} \]
 Given a state $a$, the goal of the agent is to find a policy $\pi$ that maximizes the value $\max_\pi V^{\pi}(s)$.
 
-When the MDP is known, solving the optimal policy can be achieved in polynomial time using LP optimization.
+When the MDP is known, solving the optimal policy can be achieved in polynomial time using LP optimization \citep{lan2023policy}.
 
-\subsection{Multi-armed bandits (Lecture 16)}
+An important concept here for evaluating the value function is called the Value Iteration, an iterative method to compute the optimal value function $V^{\star}$.
+Starting with an arbitrary $V_0$, for each state $s \in \mathcal{S}$, we update:
+\[ V_{k+1}(s) = \max_{a \in \mathcal{A}} \left( r(s, a) + \gamma \sum_{s' \in \cS} \Pr[s' \mid s, a ] V_k(s') \right). \]
+This algorithm continues until the value function converges, e.g., $\bignorm{V_{k+1} - V_k}_{\infty} \le \epsilon$ for some desired threshold $\epsilon$.
+Once $V^{\star}$ is found, the optimal policy $\pi^{\star}$ is extracted via:
+\[ \pi^{\star}(s) = \arg\max_{a \in \cA} \left( r(s, a) + \gamma \sum_{s' \in \cS} \Pr[s' \mid s, a] V^\star(a') \right) \]
+
+Another fundamental concept, building on the Bellman's optimality condition, is called the Policy Iteration.
+In particular, policy iteration alternates between two steps until the policy $\pi$ converges to $\pi^\star$:
+\begin{itemize}
+    \item \emph{Policy evaluation:} Given the current policy $\pi_k$, compute the value function $V^{\pi_k}$ by solving the linear system for all $s \in \mathcal{S}$
+    \[ V^{\pi_k}(s) = r(s, \pi_k(s)) + \gamma \sum_{s' \in \mathcal{S}} \Pr[s' \mid s, \pi_k(s)] V^{\pi_k}(s') \]
+    \item \emph{Policy improvement:} Update the policy by being greedy with respect to $V^{\pi_k}$
+    \[ \pi_{k+1}(s) = \arg\max_{a \in \mathcal{A}} \left( r(s, a) + \gamma \sum_{s' \in \mathcal{S}} \Pr[s' \mid s, a] V^{\pi_k}(s') \right) \]
+\end{itemize}
+The algorithm terminates when $\pi_{k+1} = \pi_k$, guaranteeing that the optimal policy has been reached.
+
+\begin{example}[Strategic RLHF \citep{bueningstrategyproof}]
+    Another interesting example with RLHF concerns data acquisition.
+    Imagine that $n$ agents or labelers are working to evaluate several language models.
+    As in Example \ref{ex_rl_reasoning}, a labeler is provided with a pair of (or several) trajectories in the form of prompt-response sequences, and is asked to provide their favorite trajectory, given an initial prompt.
+
+    Under this scenario, a strategic agent may decide to misreport their true preference in the hope of manipulating the model behavior, which will be using the solicited preference trajectory to train the optimal policy.
+    For example, if the aggregated optimal policy turns out to be highly undesirable, then an agent may choose to abstain by reverting their true preferences.
+\end{example}
+
+\subsection{Sample complexity and online learning in multi-armed bandits (Lecture 16)}
 
 Above we require knowledge of the MDP. Here, we consider another decision making framework.
-For $t = 1, \dots, T$,
-\begin{itemize}
-    \item Select decision $\pi^t \in \Pi \define = \set{1, 2, \dots, A}$
-    \item Observe reward $r^t \in \real$
-\end{itemize}
+For $t = 1, \dots, T$, select decision $\pi^t \in \Pi \define = \set{1, 2, \dots, A}$, and observe reward $r^t \in \real$.
 The protocol proceeds in $T$ rounds.
 At each round $t \in [T]$, the learning agent selects a discrete decision $\pi^t \in \Pi = \set{1, \dots, K}$ using historical data.
 %We allow the learner to randomize the decision at step $t$.
 Based on the decision $\pi^t$, the learner receives a random reward $r_a \in [-1, 1]$ from $R(a) \in \Delta([-1, 1])$, which has mean reward
-\[ \exarg{r_a \sim R(a)}{r_a} = \mu_a \]
+$\exarg{r_a \sim R(a)}{r_a} = \mu_a$.
 Every iteration $t$, the learner picks an arm $I_t \in [1, 2, \dots, K]$. The cumulative regret is defined as
-\[ R_T = T \cdot \max_i \mu_i - \sum_{t=0}^{T-1} \mu_{I_t} \]
+$R_T = T \cdot \max_i \mu_i - \sum_{t=0}^{T-1} \mu_{I_t}$.
 Denote $a^{\star} = \arg \min_i \mu_i$ as the optimal arm.
 Define gap $\Delta_a = \mu_{a^{\star}} - \mu_a$ for any arm $a$.
 
 The upper confidence bound algorithm is one approach to tackle the MAB problem.
 For simplicity, we allocate the first $K$ rounds to pull each arm once.
-Then, for $t = 1 \rightarrow T - K$,
-\begin{itemize}
-    \item Execute arm $I_t = \arg \max_{i \in [K]} \left( \hat \mu_i^t + \sqrt{\frac {\log(TK / \delta)} {N_i^t}} \right)$
-    \item Observe $r_t \define r_{I_t}$
-\end{itemize}
+Then, for $t = 1 \rightarrow T - K$, execute arm \[ I_t = \arg \max_{i \in [K]} \left( \hat \mu_i^t + \sqrt{\frac {\log(TK / \delta)} {N_i^t}} \right), \text{ and observe } r_t \define r_{I_t}, \]
 where $I_t$ is the index of the arm that is picked by the algorithm at iteration $t$,
 and the counts of each arm at each iteration $t$ is
 \[ N_a^t = 1 + \sum_{i=1}^{t-1} \bm{1}\set{I_i = a} \]
@@ -149,3 +178,6 @@ The upper confidence bound states that with probability at least $1 - \delta$,
 \[ \bigabs{ \hat \mu_a^t - \mu_a } \le 2 \sqrt{ \frac {\ln(TK / \delta)} {N_a^t}  } \]
 where $\hat \mu_a^t$ is the empirical mean for each arm.
 It can be shown that UCB achieves a regret of at most $O(\sqrt{K T \ln (KT / \delta)} + K)$.
+
+The theory of RL is a fascinating topic that has been attracting interests in the ML community.
+For further reading, see, e.g., \cite{foster2023foundations,chi2025statistical}.
