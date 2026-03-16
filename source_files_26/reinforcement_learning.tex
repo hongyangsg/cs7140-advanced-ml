@@ -90,12 +90,12 @@ The {rewards} $r(s, a)$ could be {sparse,} given only at the end of the sequence
 %\s{Stationary policies.}
 An important concept for studying RL problems is that of a stationary policy, which satisfies the following consistency conditions for all $s\in\cS$ and $a\in\cA$, given $V^{\pi}$ and $Q^{\pi}$:
 \begin{align*}
-    V^{\pi}(s) &= Q^{\pi}(s, \pi(s)) \\
-    Q^{\pi}(s, a) &= r(s, a) + \gamma \exarg{a\sim\pi, s'\sim P(\cdot | s, a)}{V^{\pi}(s')}
+    V^{\pi}(s) &= \exarg{a \sim \pi(\cdot \mid s) }{Q^{\pi}(s, a) } \\
+    Q^{\pi}(s, a) &= r(s, a) + \gamma \exarg{s'\sim \Pr(\cdot | s, a)}{V^{\pi}(s')}
 \end{align*}
 Let us denote $P^{\pi}$ as the transition matrix on state-action pairs induced by a stationary matrix $\pi$, specifically:
-\[ P^{\pi}_{(s, a), (s', a')} \define P(s' | s, a) \pi(a' | s') \]
-In particular, for deterministic policies we have
+\[ P^{\pi}_{(s, a), (s', a')} \define \Pr(s' | s, a) \pi(a' | s'), \text{ for any } s' \in \cS, a' \in \cA \]
+In particular, for deterministic policies $\pi$, we have
 \begin{align*}
     r^{\pi}_{(s, a), (s', a')} \define
     \begin{cases}
@@ -103,13 +103,17 @@ In particular, for deterministic policies we have
         0 & \text{ if } a' \neq \pi(s')
     \end{cases}
 \end{align*}
-Let $V^{\pi}$ be a vector of length $\cS$ and $Q^{\pi}, r$ as vectors of length $\abs{\cS} \cdot \abs{\cA}$.
-Let $P$ be a matrix where $P_{(s, a), s'} = P^{\pi}(s' | s, a)$.
+Let $V^{\pi}$ be a vector of length $\cS$ and $Q^{\pi}, r$ a vector of length $\abs{\cS} \times \abs{\cA}$.
+Let $P$ be a matrix where $P_{(s, a), s'} = \Pr(s' | s, a)$.
 With this notation, we can verify that
 \begin{align*}
     Q^{\pi} = r + \gamma P V^{\pi}, \text{ or equivalently } Q^{\pi} = r + \gamma P^{\pi} Q^{\pi},
 \end{align*}
-leading to the solution that $Q^{\pi} = (\id - \gamma P^{\pi})^{-1} r$.
+leading to the solution that $Q^{\pi} = (\id - \gamma P^{\pi})^{-1} r$. In particular, this step is based on the following expansion of $Q^{\pi}(s, a)$ on an arbitrary state-action pair $(s, a)$:
+\begin{align*}
+    Q^{\pi}(s, a) &= r(s, a) + \gamma \sum_{(s', a') \in \cS \times \cA} \Pr(s' \mid s, a) \pi(a' \mid s') Q^{\pi}(s', a')  \tag{$ Q^{\pi} = r + \gamma P^{\pi} Q^{\pi}$} \\
+    &= r(s, a) + \gamma \sum_{s' \in \cS} \Pr(s' \mid s, a) \underbrace{ \sum_{a' \in \cA} \pi(a' \mid s') Q^{\pi}(s', a') }_{V^{\pi}(s')} \tag{$ Q^{\pi} = r + \gamma P V^{\pi}$ }
+\end{align*}
 \hl{As a consequence of this equation, given a policy $\pi$, one can obtain the value function by solving a linear equation.}
 
 A remarkable and convenient property of MDPs is that there exists a stationary and deterministic policy that simultaneously maximizes $V^{\pi}(s)$ for all $s \in \cS$.
