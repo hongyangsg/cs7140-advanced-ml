@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{epsfig}
+\def\shownotes{1}
+\usepackage{macro}
+\usepackage{url}
+\usepackage{mdframed}
+\usepackage{hyperref}
+\usepackage[noend,noline]{algorithm2e}
+%\usepackage{enumerate,enumitem}
+\SetEndCharOfAlgoLine{}
+\SetArgSty{}
+\SetKwBlock{Repeat}{repeat}{}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{gray},
+    showstringspaces=false,
+    frame=single,
+    breaklines=true,
+    tabsize=4
+}
+
+\everymath=\expandafter{\the\everymath\displaystyle}
+%%\usepackage{psfig}
+\DeclareMathSizes{24}{24}{24}{24}
+\newcommand{\lecture}[2]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf CS7140: Advanced Machine Learning} \hfill Spring 2026}
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #1  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em Instructor: Ryan Zhang  \hfill Due: #2} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+%\newcommand{\dim}{\textup{dim}}
+
+
+\newcommand*{\diffdchar}{d}    % or {ⅆ}, or {\mathrm{d}}, or whatever standard you’d like to adhere to
+\newcommand*{\dd}{\mathop{\diffdchar\!}}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\newcommand{\E}{\mathbb{E}}
+
+\usepackage{amsmath, amssymb}
+\usepackage{fullpage}
+\pagestyle{empty}
+\def\pp{\par\noindent}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\baselinestretch}{1.2}
+\newcommand{\problem}[1]{ \bigskip \pp \textbf{Problem #1}\par}
+\newcommand{\solution}{\textit{Solution:}\par}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\bbZ}    {\mathbb{Z}}
+\newcommand{\bbQ}    {\mathbb{Q}}
+\newcommand{\bbN}    {\mathbb{N}}
+\newcommand{\bbB}    {\mathbb{B}}
+\newcommand{\bbR}    {\mathbb{R}}
+\newcommand{\bbC}    {\mathbb{C}}
+\newcommand{\calP}   {{\cal{P}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\lecture{Problem Set 3}{\textbf{April 1, 2026, 11:59pm}}
+
+\textbf{Policy:} You should write up the solution independently. You are allowed to use AI agents, but please use them only to look up references or additional results, not to excessively complete the homework solutions.
+%There are up to three late days for all the problem sets and project submissions.
+%After that, the grade depreciates by 20\% for every extra day.
+If you anticipate submitting the homework late, please reach out to the instructor at \texttt{ho.zhang@northeastern.edu}.
+All homework submissions are subject to the Northeastern University \href{https://catalog.northeastern.edu/handbook/policies-regulations/honor-code/}{Honor Code}.
+
+\textbf{Submission:} We will use Gradescope for grading your homework submissions. Please submit your written solutions by logging in to Gradescope through Canvas using your northeastern.edu account.
+For code submission, please print out the code file and attach it to the PDF solution file.
+We strongly recommend that you write up your solution in \LaTeX. For reference, you can find the \LaTeX\ source code of the homework files on \href{https://github.com/hongyangsg/cs7140/tree/main/homeworks}{GitHub}.
+
+When writing down the solution, include as many details as needed in order to understand your answer.
+However, excessively long answers are not encouraged. After solving the problem, try to identify the main steps and critical points of the proof and highlight them.
+
+
+
+\newpage
+\paragraph{Problem 1 (20 points)}
+Let $f: \mathbb{R}^n\rightarrow \mathbb{R}$ be a convex function taking as input a vector $x\in \mathbb{R}^n$. The Hessian matrix $\mathbf{H}$ of $f$ is a square matrix in $\real^{n\times n}$ with the $(i,j)$-th entry of defined as:
+\[ \mathbf{H}[f]_{i,j} = \frac{\partial^2 f(x)}{\partial x_i \partial x_j}. \]
+Show that the Hessian matrix $\mathbf{H}[f]$ is positive semidefinite.
+
+\newpage
+\paragraph{Problem 2 (20 points).}
+Suppose $x_1, x_2, \cdots, x_n$ are all drawn i.i.d. from some unknown distribution $p^{\star}$ supported in the $d$-dimensional space $\mathbb{R}^d$.
+Furthermore, for any $i = 1,2,\dots,n$, suppose the largest coordinate of $x_i$ are all bounded: $||x_i||_{\infty}\leq B)$.
+Recall that the covariance matrix of a distibution $p^{\star}$ is defined as
+$$\Sigma = \mathbb{E}_{x\sim p^{\star}}\Big{[}(x-\mathbb{E}_{x\sim p^{\star}}[x])(x-\mathbb{E}_{x\sim p^{\star}}[x])^T\Big{]}.$$
+Assume that $p^{\star}$ is centered at zero: $\mathbb{E}_{x\sim p}[x] = 0$.
+Define the sample covariance matrix
+$$\hat{\Sigma} = \frac{1}{n}\sum_{i = 1}^n x_ix_i^T.$$
+For any fixed $\epsilon > 0$, show that
+$$\mathbb{P}\Big{[}\max_{1\leq i,j\leq d}|\hat{\Sigma}_{ij} - \Sigma_{ij}|\geq \epsilon\Big{]}\leq 2d^2\exp \left(-\frac{n\epsilon^2}{2B^4}\right).$$
+
+\newpage
+\paragraph{Problem 3 (20 points).}
+A numerical exercise with a stationary policy and $Q$-learning.
+
+\newpage
+\paragraph{Problem 4 (40 points).}
+For each of the following questions, provide $2$-$3$ sentences of explanation (8 points each).
+\begin{itemize}
+    \item What is the relationship between the moment generating function of a random variable and the moments of the random variable?
+
+    \item Describe the high-level approach in a few sentences to proving a Chernoff-style bound.
+
+    \item Why is the above approach often much easier to apply to a sum of independent random variables, rather than dependent ones?
+
+    \item What is the pseudoinverse of a matrix? And when should you use the pseudoinverse or the inverse?
+
+    \item What is the hypothesis of benign overfitting? In the context of overparameterized linear regression, when do we expect benign overfitting to occur?
+
+\end{itemize}
+
+
+
+\end{document}

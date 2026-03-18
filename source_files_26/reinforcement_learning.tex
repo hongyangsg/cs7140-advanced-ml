@@ -119,9 +119,7 @@ leading to the solution that $Q^{\pi} = (\id - \gamma P^{\pi})^{-1} r$. In parti
 A remarkable and convenient property of MDPs is that there exists a stationary and deterministic policy that simultaneously maximizes $V^{\pi}(s)$ for all $s \in \cS$.
 In particular, the Bellman optimality equations \citep{bellman1956dynamic} give a precise characterization of the optimal value function. In the next section, we will dive into this result.
 
-\subsection{Value iteration and policy iteration (Lecture 16)}
-
-Consider a finite-horizon and time-dependent MDP, $M = (\cS, \cA, \set{P}_h, \set{r}_h, H, \mu)$, specified with a state space $\cS$, an action space $\cA$, a time-dependent transition function $P_h: \cS \times \cA \rightarrow \Delta(S)$, a time-dependent reward function $r_h: \cS \times \cA \rightarrow [0, 1]$, an integer $H$ which defines the horizon of the problem, and an initial state distribution $\mu \in \Delta(\cS)$ which specifies how the initial state $s_0$ is generated
+The above assumes an infinite-horizon, discounted MDP. Alternatively, consider a finite-horizon and time-dependent MDP, $M = (\cS, \cA, \set{P}_h, \set{r}_h, H, \mu)$, specified with a state space $\cS$, an action space $\cA$, a time-dependent transition function $P_h: \cS \times \cA \rightarrow \Delta(S)$, a time-dependent reward function $r_h: \cS \times \cA \rightarrow [0, 1]$, an integer $H$ which defines the horizon of the problem, and an initial state distribution $\mu \in \Delta(\cS)$ which specifies how the initial state $s_0$ is generated.
 
 Here, for a policy $\pi$, a state $s$, and $h \in \set{0, \dots, H-1}$, we define the value function $V_h^{\pi}: \cS \rightarrow \real$ as
 \[ V_h^{\pi}(s) = \ex{\sum_{t = h}^{H-1} r_h(s_t, a_t) | \pi, s_h = s } \]
@@ -129,19 +127,27 @@ Similarly, the state-action value function $Q_h^{\pi}$ is defined as
 \[ Q_h^{\pi}(s, a) = \ex{\sum_{t=h}^{H-1} r_h(s_t, a_t) | \pi, s_h = s, a} \]
 Given a state $a$, the goal of the agent is to find a policy $\pi$ that maximizes the value $\max_\pi V^{\pi}(s)$.
 
-When the MDP is known, solving the optimal policy can be achieved in polynomial time using constrained optimization \citep{lan2023policy}.
+\begin{example}
+    The difference between finite-horizon vs. infinite-horizon MDPs is that time matters.
+    In particular, the optimal policy can be time-dependent, and you may delay actions because horizon is limited, as a result, the value function depends on the episode $h$.
 
-An important concept here for evaluating the value function is called the \emph{Value Iteration}, an iterative method to compute the optimal value function $V^{\star}$.
+    On the other hand, for infinite-horizon MDPs, the optimal policy is stationary.
+\end{example}
+
+\subsection{Value iteration and policy iteration (Lecture 16)}
+
+For an infinite-horizon, discounted MDP, solving the optimal policy can be achieved in polynomial time using constrained optimization \citep{lan2023policy}.
+An important concept for computing the optimal value function is called the \emph{Value Iteration}, an iterative method to compute the \emph{optimal} value function $V^{\star}$.
 Starting with an arbitrary $V_0$, for each state $s \in \mathcal{S}$, we update:
 \[ V_{k+1}(s) = \max_{a \in \mathcal{A}} \left( r(s, a) + \gamma \sum_{s' \in \cS} \Pr[s' \mid s, a ] V_k(s') \right). \]
 This algorithm continues until the value function converges, e.g., $\bignorm{V_{k+1} - V_k}_{\infty} \le \epsilon$ for some desired threshold $\epsilon$.
 Once $V^{\star}$ is found, the optimal policy $\pi^{\star}$ is extracted via:
-\[ \pi^{\star}(s) = \arg\max_{a \in \cA} \left( r(s, a) + \gamma \sum_{s' \in \cS} \Pr[s' \mid s, a] V^\star(a') \right). \]
+\[ \pi^{\star}(s) = \arg\max_{a \in \cA} \left( r(s, a) + \gamma \sum_{s' \in \cS} \Pr[s' \mid s, a] V^\star(s') \right). \]
 
 Another fundamental concept, building on the Bellman's optimality condition, is called the \emph{Policy Iteration}.
-In particular, policy iteration alternates between two steps until the policy $\pi$ converges to $\pi^\star$:
+We restrict to deterministic policies here, and in particular, policy iteration alternates between two steps until the policy $\pi$ converges to $\pi^\star$:
 \begin{itemize}
-    \item \emph{Policy evaluation:} Given the current policy $\pi_k$, compute the value function $V^{\pi_k}$ by solving the linear system for all $s \in \mathcal{S}$
+    \item \emph{Policy evaluation:} Given a policy $\pi_k$, compute the value function $V^{\pi_k}$ by solving the linear system for all $s \in \mathcal{S}$
     \[ V^{\pi_k}(s) = r(s, \pi_k(s)) + \gamma \sum_{s' \in \mathcal{S}} \Pr[s' \mid s, \pi_k(s)] V^{\pi_k}(s') \]
     \item \emph{Policy improvement:} Update the policy by being greedy with respect to $V^{\pi_k}$
     \[ \pi_{k+1}(s) = \arg\max_{a \in \mathcal{A}} \left( r(s, a) + \gamma \sum_{s' \in \mathcal{S}} \Pr[s' \mid s, a] V^{\pi_k}(s') \right) \]
