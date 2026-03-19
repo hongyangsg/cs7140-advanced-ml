@@ -14,7 +14,7 @@
 \SetEndCharOfAlgoLine{}
 \SetArgSty{}
 \SetKwBlock{Repeat}{repeat}{}
-
+\usepackage{booktabs}
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -105,7 +105,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-\lecture{Problem Set 3}{\textbf{April 1, 2026, 11:59pm}}
+\lecture{Problem Set 3}{\textbf{April 8, 2026, 11:59pm}}
 
 \textbf{Policy:} You should write up the solution independently. You are allowed to use AI agents, but please use them only to look up references or additional results, not to excessively complete the homework solutions.
 %There are up to three late days for all the problem sets and project submissions.
@@ -124,29 +124,50 @@ However, excessively long answers are not encouraged. After solving the problem,
 
 \newpage
 \paragraph{Problem 1 (20 points)}
-Let $f: \mathbb{R}^n\rightarrow \mathbb{R}$ be a convex function taking as input a vector $x\in \mathbb{R}^n$. The Hessian matrix $\mathbf{H}$ of $f$ is a square matrix in $\real^{n\times n}$ with the $(i,j)$-th entry of defined as:
+A function $f: \mathbb{R}^n\rightarrow \mathbb{R}$ is convex if for any $x \in \real^n, y\in \real^n$, and $\alpha \in (0, 1)$, $\alpha f(x) + (1 - \alpha) f(y) \ge f( \alpha x + (1 - \alpha) y )$.
+
+Let $f$ be a convex function taking as input a vector $x\in \mathbb{R}^n$.
+Assume that $f$ is twice-differentiable.
+The Hessian matrix of $f$, denoted by $\mathbf{H} = \nabla^2 f$, is a square matrix in $\real^{n\times n}$ with the $(i,j)$-th entry of defined as:
 \[ \mathbf{H}[f]_{i,j} = \frac{\partial^2 f(x)}{\partial x_i \partial x_j}. \]
-Show that the Hessian matrix $\mathbf{H}[f]$ is positive semidefinite.
+\begin{itemize}
+    \item (5 points) Suppose that $n = 2$, and $f(x) = x_1^2 + x_1 x_2 + x_2^2$. Show that $f(x)$ is a convex function.
+
+    Can you give an example of a nonconvex function and explain why it is nonconvex?
+
+    \item (5 points) A function $f$ is $L$-smooth if $\bignorm{\nabla f(x) - \nabla f(y)} \le L \bignorm{x - y}$. Is $f(x) =x_1^2 + x_1 x_2 + x_2^2$ smooth? What is the $L$-smoothness parameter?
+
+    \item (5 points) Given a convex function with $n = 1$, can you show that its Hessian matrix $\mathbf{H}[f]$ is positive semidefinite, meaning that $v^{\top} \mathbf{H}[f] v \ge 0$, for any $v \in \real$?
+
+    [Hint: Convexity implies that the derivation is monotone, hence the second-derivative is non-negative.]
+
+    \item (5 points) Can you extend the above to the case where $n$ is in arbitrary dimension?
+\end{itemize}
 
 \newpage
-\paragraph{Problem 2 (20 points).}
-Suppose $x_1, x_2, \cdots, x_n$ are all drawn i.i.d. from some unknown distribution $p^{\star}$ supported in the $d$-dimensional space $\mathbb{R}^d$.
-Furthermore, for any $i = 1,2,\dots,n$, suppose the largest coordinate of $x_i$ are all bounded: $||x_i||_{\infty}\leq B)$.
-Recall that the covariance matrix of a distibution $p^{\star}$ is defined as
-$$\Sigma = \mathbb{E}_{x\sim p^{\star}}\Big{[}(x-\mathbb{E}_{x\sim p^{\star}}[x])(x-\mathbb{E}_{x\sim p^{\star}}[x])^T\Big{]}.$$
-Assume that $p^{\star}$ is centered at zero: $\mathbb{E}_{x\sim p}[x] = 0$.
-Define the sample covariance matrix
-$$\hat{\Sigma} = \frac{1}{n}\sum_{i = 1}^n x_ix_i^T.$$
-For any fixed $\epsilon > 0$, show that
-$$\mathbb{P}\Big{[}\max_{1\leq i,j\leq d}|\hat{\Sigma}_{ij} - \Sigma_{ij}|\geq \epsilon\Big{]}\leq 2d^2\exp \left(-\frac{n\epsilon^2}{2B^4}\right).$$
+\paragraph{Problem 2 (45 points).}
+Suppose that $\cD$ is an unknown distribution supported in the $d$-dimensional space $\mathbb{R}^d$.
+Recall that the covariance matrix of a distribution $\cD$ is defined as
+\[ \Sigma = \exarg{x\sim \cD}{(x - \exarg{x\sim \cD}{x})(x-\exarg{x\sim p^{\star}}{x})^\top }. \]
+\begin{itemize}
+    \item (5 points) Given $n$ samples from $\cD$, $v_1, v_2, \dots, v_n$. Define the sample covariance matrix
+    \[ \widehat{\Sigma} = \frac{1}{n}\sum_{i = 1}^n v_i v_i^{\top}. \]
+    What is the expectation of $\widehat \Sigma$?
+    
+    \item (5 points) Suppose that every $x_i$ is sampled from the Gaussian distribution $\cN(0, 1)$ with mean zero and variance one. What is the covariance matrix of the vector $x = (x_1, x_2, \dots, x_d)$?
+   
+    \item (10 points) Next, assume that the distribution $\cD$ is centered at zero, and for any $i = 1,2,\dots,d$, the largest coordinate of $v_i$ are bounded by $B$: $||v_i||_{\infty}\leq B$.
+    For any fixed $\epsilon > 0$, show that
+    \[ \mathbb{P}\Big{[}\max_{1\leq i,j\leq d}\bigabs{\widehat{\Sigma}_{i, j} - \Sigma_{i, j}}\geq \epsilon\Big{]}\leq 2n^2\exp \left(-\frac{n\epsilon^2}{2B^4}\right). \]
+
+    \item (10 points) Lastly, in the case of $n$ sampled Gaussian vectors $v_1, v_2, \dots, v_n$, show that $\bignorm{v_i}_\infty \le \sqrt{2 \log\Big(\frac{2nd}{\delta} \Big)}$ with probability at least $1 - \delta$.
+
+    \item (10 points) Conduct a python numerical experiment to verify the above result. That is, draw a figure to compare $\bignormFro{\widehat \Sigma - \Sigma}$ as a function of $n$.
+\end{itemize}
 
 \newpage
-\paragraph{Problem 3 (20 points).}
-A numerical exercise with a stationary policy and $Q$-learning.
-
-\newpage
-\paragraph{Problem 4 (40 points).}
-For each of the following questions, provide $2$-$3$ sentences of explanation (8 points each).
+\paragraph{Problem 3 (25 points).}
+For each of the following questions, provide several sentences of explanation (5 points each).
 \begin{itemize}
     \item What is the relationship between the moment generating function of a random variable and the moments of the random variable?
 
@@ -157,9 +178,42 @@ For each of the following questions, provide $2$-$3$ sentences of explanation (8
     \item What is the pseudoinverse of a matrix? And when should you use the pseudoinverse or the inverse?
 
     \item What is the hypothesis of benign overfitting? In the context of overparameterized linear regression, when do we expect benign overfitting to occur?
-
 \end{itemize}
 
+\newpage
+\paragraph{Problem 4 (10 points).}
+In this problem, you will work through an example to compute the stationary policy and the optimal value function of a Markov decision process.
 
+Consider a discounted infinite-horizon MDP with discount factor $\gamma = 0.8$.
+The state space is $\cS = {s_1, s_2, s_3}$ and the action space is $\cA = {a_1, a_2}$.
+The transition model (which is deterministic in this case) and the reward function are given as follows.
+\begin{table}[h]
+\centering
+\begin{tabular}{c|c|c|c}
+\toprule
+State & Action & Next state & Reward \\
+\hline
+$s_1$ & $a_1$ & $s_1$ & 2 \\
+$s_1$ & $a_2$ & $s_2$  & 0 \\
+$s_2$ & $a_1$ & $s_3$ & 3 \\
+$s_2$ & $a_2$ & $s_1$  & 1 \\
+$s_3$ & $a_1$ & $s_3$  & 1 \\
+$s_3$ & $a_2$ & $s_2$ & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+    \item (10 points) Consider the stationary policy $\pi$ defined by $\pi(s_1)=a_2, \pi(s_2)=a_1,\pi(s_3)=a_1.$
+    Write down the linear system of equations satisfied by the value function $V^{\pi}$.
+    Then, solve the linear system and compute the value function $V^\pi$ corresponding to $\pi$.
+    
+    [Hint: Note that the policies here are deterministic. Refer to Section 5 of the lecture notes.]
+    
+    \item (10 points bonus) Starting from $V_0(s)=0$ for all $s \in \cS$, perform $3$ steps of value iteration for $k = 0, 1, 2,$
+    \[ V_{k+1}(s)=\max_{a\in\cA}\left(r(s,a)+\gamma\sum_{s'\in\cS}\Pr[s'|s,a] V_k(s')\right), \text{ for every } s \in \cS, \]
+    and obtain $V_1, V_2, V_3$. Then, use $V_3$ to compute the greedy policy:
+    \[ \pi(s) = \arg\max_{a\in\cA}\left(r(s,a)+\gamma\sum_{s'\in\cS} \Pr[s'|s,a] V_3(s')\right), \text{ for every } s \in \cS. \]
+\end{itemize}
 
 \end{document}
