@@ -97,7 +97,7 @@ def matrix_completion(
         normalized_mse = mse / M_true_sq_avg
         nrmses.append(normalized_mse)
 
-        if verbose and t % 1 == 0:
+        if verbose and t % 10 == 0:
             print(f"iter {t:4d}  loss={losses[-1]:.4f}  normalized loss={nrmses[-1]:.4f}")
 
         if np.linalg.norm(X_new - X, "fro") < tol:
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # ── generate a rank-5 matrix with 10 % of entries observed ──
     m, n, true_rank = 200, 100, 5
     M_true = make_low_rank_matrix(m, n, true_rank, noise=0.00)
-    mask = random_mask(m, n, obs_fraction=0.90)
+    mask = random_mask(m, n, obs_fraction=0.10)
 
     M_obs = M_true * mask          # zeros at unobserved entries
 
@@ -139,9 +139,9 @@ if __name__ == "__main__":
     X_hat, losses, nrmses = matrix_completion(
         M_obs, mask,
         r=true_rank,
-        lam=0.001,
-        lr=10.0,
-        n_iter=100,
+        lam=0.00001,
+        lr=20.0,
+        n_iter=1001,
         tol=1e-7,
         verbose=True,
         M_true=M_true,
