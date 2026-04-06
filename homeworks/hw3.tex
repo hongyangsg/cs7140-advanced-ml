@@ -150,17 +150,17 @@ Suppose that $\cD$ is an unknown distribution supported in the $d$-dimensional s
 Recall that the covariance matrix of a distribution $\cD$ is defined as
 \[ \Sigma = \exarg{x\sim \cD}{(x - \exarg{x\sim \cD}{x})(x-\exarg{x\sim p^{\star}}{x})^\top }. \]
 \begin{itemize}
-    \item (5 points) Given $n$ samples from $\cD$, $v_1, v_2, \dots, v_n$. Define the sample covariance matrix
+    \item (5 points) Given $n$ independent samples from $\cD$, $v_1, v_2, \dots, v_n$ from $\real^d$. Define the sample covariance matrix
     \[ \widehat{\Sigma} = \frac{1}{n}\sum_{i = 1}^n v_i v_i^{\top}. \]
     What is the expectation of $\widehat \Sigma$?
     
-    \item (5 points) Suppose that every $x_i$ is sampled from the Gaussian distribution $\cN(0, 1)$ with mean zero and variance one. What is the covariance matrix of the vector $x = (x_1, x_2, \dots, x_d)$?
+    \item (5 points) Suppose that every $x_i \in \real$ is sampled independently from the Gaussian distribution $\cN(0, 1)$ with mean zero and variance one. What is the covariance matrix of the vector $x = [x_1, x_2, \dots, x_d]^{\top} \in \real^d$?
    
-    \item (10 points) Next, assume that the distribution $\cD$ is centered at zero, and for any $i = 1,2,\dots,d$, the largest coordinate of $v_i$ are bounded by $B$: $||v_i||_{\infty}\leq B$.
+    \item (15 points) Next, suppose that the distribution $\cD$ is centered at zero, and for any $i = 1,2,\dots,n$, the largest coordinate of $v_i$ are bounded by $B$: $||v_i||_{\infty}\leq B$.
     For any fixed $\epsilon > 0$, show that
-    \[ \mathbb{P}\Big{[}\max_{1\leq i,j\leq d}\bigabs{\widehat{\Sigma}_{i, j} - \Sigma_{i, j}}\geq \epsilon\Big{]}\leq 2n^2\exp \left(-\frac{n\epsilon^2}{2B^4}\right). \]
+    \[ \mathbb{P}\Big{[}\max_{1\leq i,j\leq d}\bigabs{\widehat{\Sigma}_{i, j} - \Sigma_{i, j}}\geq \epsilon\Big{]}\leq 2d^2\exp \left(-\frac{n\epsilon^2}{2B^4}\right). \]
 
-    \item (10 points) Lastly, in the case of $n$ sampled Gaussian vectors $v_1, v_2, \dots, v_n$, show that $\bignorm{v_i}_\infty \le \sqrt{2 \log\Big(\frac{2nd}{\delta} \Big)}$ with probability at least $1 - \delta$.
+    \item (10 points) Lastly, in the case of $n$ sampled Gaussian vectors $v_1, v_2, \dots, v_n$ from $\real^d$ with mean zero and isotropic covariance matrix $\id_d$, show that $\bignorm{v_i}_\infty \le \sqrt{2 \log\Big(\frac{2nd}{\delta} \Big)}$ for every $i = 1, 2, \dots, n$ with probability at least $1 - \delta$.
 
     \item (10 points) Conduct a python numerical experiment to verify the above result. That is, draw a figure to compare $\bignormFro{\widehat \Sigma - \Sigma}$ as a function of $n$.
 \end{itemize}
